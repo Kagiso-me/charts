@@ -1,0 +1,57 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+## TL;DR
+
+```bash
+helm repo add phil-mcgee https://phil-mcgee.github.io/charts
+helm install my-postgresql phil-mcgee/postgresql
+```
+
+## Introduction
+
+This chart bootstraps a [PostgreSQL](https://www.postgresql.org/) StatefulSet on a Kubernetes cluster. It uses the official upstream `postgres` Docker image without modifications, tuned with production-grade defaults:
+
+- Non-root container with dropped capabilities
+- Stable DNS via headless Service
+- Schema-validated `values.yaml`
+- Optional NetworkPolicy, PodDisruptionBudget, and custom `postgresql.conf`
+
+## Prerequisites
+
+- Kubernetes 1.23+
+- Helm 3.8+
+- PV provisioner support in the underlying infrastructure (for persistence)
+
+## Installing the Chart
+
+```bash
+helm install my-postgresql phil-mcgee/postgresql \
+  --set auth.postgresPassword=secretpassword \
+  --set auth.username=myuser \
+  --set auth.password=mypassword \
+  --set auth.database=mydatabase
+```
+
+## Uninstalling the Chart
+
+```bash
+helm delete my-postgresql
+```
+
+> **Note:** PVCs are NOT deleted on chart removal. Delete them manually if needed.
+
+## Configuration
+
+{{ template "chart.valuesSection" . }}
+
+{{ template "chart.maintainersSection" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "helm-docs.versionFooter" . }}

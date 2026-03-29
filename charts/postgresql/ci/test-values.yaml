@@ -1,0 +1,29 @@
+# Values used by `ct install` in CI.
+# Uses a known password so the test is deterministic, minimal resources,
+# and no persistence (ephemeral kind node storage is used instead).
+
+auth:
+  enablePostgresUser: true
+  postgresPassword: "testpassword"
+  username: "testuser"
+  password: "testpassword"
+  database: "testdb"
+
+primary:
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  persistence:
+    enabled: false
+
+  startupProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    failureThreshold: 30

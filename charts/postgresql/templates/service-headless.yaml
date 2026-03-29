@@ -1,0 +1,29 @@
+{{/*
+Headless service — gives each pod a stable DNS entry:
+  <pod-name>.<headless-svc>.<namespace>.svc.<clusterDomain>
+Required by the StatefulSet for stable network identity.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgresql.primary.svc.headless" . }}
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: primary
+  annotations:
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+    {{- with .Values.commonAnnotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: postgresql
+      port: {{ .Values.primary.service.port }}
+      targetPort: postgresql
+      protocol: TCP
+  selector:
+    {{- include "postgresql.primary.selectorLabels" . | nindent 4 }}

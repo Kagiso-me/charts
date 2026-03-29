@@ -1,0 +1,11 @@
+# Artifact Hub repository metadata
+# https://artifacthub.io/docs/topics/repositories/helm-charts/
+#
+# After registering this repo on artifacthub.io, paste the repositoryID below
+# to earn the "Verified Publisher" badge.
+#
+# repositoryID: <paste-your-repo-id-here>
+
+owners:
+  - name: Kagiso
+    email: admin@kagiso.me

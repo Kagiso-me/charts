@@ -1,0 +1,19 @@
+{{- if or .Values.primary.configuration .Values.primary.pgHbaConfiguration }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "postgresql.primary.fullname" . }}-config
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: primary
+data:
+  {{- if .Values.primary.configuration }}
+  postgresql.conf: |
+    {{- .Values.primary.configuration | nindent 4 }}
+  {{- end }}
+  {{- if .Values.primary.pgHbaConfiguration }}
+  pg_hba.conf: |
+    {{- .Values.primary.pgHbaConfiguration | nindent 4 }}
+  {{- end }}
+{{- end }}

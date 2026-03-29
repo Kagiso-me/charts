@@ -1,0 +1,38 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "postgresql.primary.fullname" . }}
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: primary
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "postgresql.primary.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: {{ include "postgresql.port" . }}
+          protocol: TCP
+      {{- if not .Values.networkPolicy.allowExternal }}
+      from:
+        - podSelector: {}
+      {{- end }}
+    {{- with .Values.networkPolicy.extraIngress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  egress:
+    # Allow DNS
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    {{- with .Values.networkPolicy.extraEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- end }}

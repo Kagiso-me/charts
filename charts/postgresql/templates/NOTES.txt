@@ -1,0 +1,36 @@
+PostgreSQL {{ .Chart.AppVersion }} has been deployed.
+
+** Please be patient while the chart is being deployed **
+
+PostgreSQL can be accessed via port {{ .Values.primary.service.port }} on the following DNS name from within your cluster:
+
+    {{ include "postgresql.primary.fullname" . }}.{{ include "postgresql.namespace" . }}.svc.{{ .Values.clusterDomain }}
+
+{{- if .Values.auth.enablePostgresUser }}
+
+To get the password for "postgres" run:
+
+    export POSTGRES_PASSWORD=$(kubectl get secret --namespace {{ include "postgresql.namespace" . }} {{ include "postgresql.secretName" . }} -o jsonpath="{.data.{{ .Values.auth.secretKeys.adminPasswordKey }}}" | base64 -d)
+
+{{- end }}
+{{- if .Values.auth.username }}
+
+To get the password for "{{ .Values.auth.username }}" run:
+
+    export POSTGRES_PASSWORD=$(kubectl get secret --namespace {{ include "postgresql.namespace" . }} {{ include "postgresql.secretName" . }} -o jsonpath="{.data.{{ .Values.auth.secretKeys.userPasswordKey }}}" | base64 -d)
+
+{{- end }}
+
+To connect to your database run the following command:
+
+    kubectl run {{ include "postgresql.fullname" . }}-client --rm --tty -i --restart='Never' \
+      --namespace {{ include "postgresql.namespace" . }} \
+      --image {{ include "postgresql.image" . }} \
+      --env="PGPASSWORD=$POSTGRES_PASSWORD" \
+      -- psql --host {{ include "postgresql.primary.fullname" . }} -U {{ .Values.auth.username | default "postgres" }} -d {{ .Values.auth.database | default "postgres" }} -p {{ .Values.primary.service.port }}
+
+{{- if not .Values.primary.persistence.enabled }}
+
+WARNING: Persistence is disabled. Data will be lost when the pod is terminated.
+         Set primary.persistence.enabled=true to enable persistent storage.
+{{- end }}

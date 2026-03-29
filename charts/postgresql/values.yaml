@@ -1,0 +1,200 @@
+## @section Global parameters
+## @param global.imageRegistry Override registry for all images in this chart
+## @param global.imagePullSecrets Global list of image pull secret names
+## @param global.storageClass Override the default StorageClass for all PVCs
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+## @section Common parameters
+## @param nameOverride Override the chart name portion of resource names
+## @param fullnameOverride Override the full resource name prefix
+## @param namespaceOverride Override the namespace for all resources
+## @param commonLabels Labels added to every resource
+## @param commonAnnotations Annotations added to every resource
+## @param clusterDomain Kubernetes cluster domain
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+
+## @section PostgreSQL image
+## @param image.registry Container image registry
+## @param image.repository Container image repository
+## @param image.tag Container image tag
+## @param image.pullPolicy Image pull policy
+## @param image.pullSecrets List of image pull secret names
+image:
+  registry: docker.io
+  repository: postgres
+  tag: "17.4-alpine"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+## @section Authentication
+## @param auth.enablePostgresUser Create the superuser account and set its password
+## @param auth.postgresPassword Password for the superuser. Ignored if `auth.existingSecret` is set
+## @param auth.username Create an additional database user
+## @param auth.password Password for the additional user. Ignored if `auth.existingSecret` is set
+## @param auth.database Create a database for the additional user
+## @param auth.existingSecret Name of an existing Secret with keys `postgres-password`, `password`, `replication-password`
+## @param auth.secretKeys.adminPasswordKey Key in the existing Secret for the superuser password
+## @param auth.secretKeys.userPasswordKey Key in the existing Secret for the additional user password
+## @param auth.secretKeys.replicationPasswordKey Key in the existing Secret for the replication user password
+auth:
+  enablePostgresUser: true
+  postgresPassword: ""
+  username: ""
+  password: ""
+  database: ""
+  existingSecret: ""
+  secretKeys:
+    adminPasswordKey: postgres-password
+    userPasswordKey: password
+    replicationPasswordKey: replication-password
+
+## @section PostgreSQL primary configuration
+## @param primary.name Name suffix for primary resources
+## @param primary.configuration PostgreSQL configuration (postgresql.conf content). Merged with defaults
+## @param primary.pgHbaConfiguration PostgreSQL client authentication config (pg_hba.conf content)
+## @param primary.replicaCount Number of primary replicas (should stay at 1 unless you know what you're doing)
+## @param primary.podAnnotations Annotations for the primary pod
+## @param primary.podLabels Extra labels for the primary pod
+## @param primary.podSecurityContext.enabled Enable pod-level security context
+## @param primary.podSecurityContext.fsGroup Group ID for the pod volumes
+## @param primary.podSecurityContext.runAsUser User ID to run the container
+## @param primary.containerSecurityContext.enabled Enable container-level security context
+## @param primary.containerSecurityContext.runAsNonRoot Require non-root user
+## @param primary.containerSecurityContext.allowPrivilegeEscalation Forbid privilege escalation
+## @param primary.containerSecurityContext.readOnlyRootFilesystem Mount root filesystem read-only
+## @param primary.resources.requests.cpu CPU request
+## @param primary.resources.requests.memory Memory request
+## @param primary.resources.limits.cpu CPU limit
+## @param primary.resources.limits.memory Memory limit
+## @param primary.livenessProbe.enabled Enable liveness probe
+## @param primary.readinessProbe.enabled Enable readiness probe
+## @param primary.startupProbe.enabled Enable startup probe
+## @param primary.persistence.enabled Enable PVC for data
+## @param primary.persistence.existingClaim Use an existing PVC
+## @param primary.persistence.storageClass StorageClass for the PVC
+## @param primary.persistence.accessModes Access modes for the PVC
+## @param primary.persistence.size PVC size
+## @param primary.persistence.annotations Annotations for the PVC
+## @param primary.service.type Service type
+## @param primary.service.port PostgreSQL port
+## @param primary.service.nodePort NodePort value when type is NodePort
+## @param primary.service.loadBalancerIP LoadBalancerIP when type is LoadBalancer
+## @param primary.service.annotations Annotations for the service
+## @param primary.extraEnvVars Additional environment variables for the primary container
+## @param primary.extraVolumes Additional volumes for the primary pod
+## @param primary.extraVolumeMounts Additional volume mounts for the primary container
+## @param primary.initContainers Init containers to add to the primary pod
+## @param primary.sidecars Sidecar containers to add to the primary pod
+primary:
+  name: primary
+  configuration: ""
+  pgHbaConfiguration: ""
+  replicaCount: 1
+
+  podAnnotations: {}
+  podLabels: {}
+
+  podSecurityContext:
+    enabled: true
+    fsGroup: 999
+    runAsUser: 999
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 15
+    successThreshold: 1
+
+  persistence:
+    enabled: true
+    existingClaim: ""
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 8Gi
+    annotations: {}
+
+  service:
+    type: ClusterIP
+    port: 5432
+    nodePort: ""
+    loadBalancerIP: ""
+    annotations: {}
+
+  extraEnvVars: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  initContainers: []
+  sidecars: []
+
+## @section Service Account
+## @param serviceAccount.create Create a service account for PostgreSQL pods
+## @param serviceAccount.name Name of the service account (auto-generated if empty)
+## @param serviceAccount.annotations Annotations for the service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+## @section Network Policy
+## @param networkPolicy.enabled Enable NetworkPolicy
+## @param networkPolicy.allowExternal Allow connections from any namespace (disables namespace isolation)
+## @param networkPolicy.extraIngress Additional ingress rules to add to the NetworkPolicy
+## @param networkPolicy.extraEgress Additional egress rules to add to the NetworkPolicy
+networkPolicy:
+  enabled: false
+  allowExternal: true
+  extraIngress: []
+  extraEgress: []
+
+## @section Pod Disruption Budget
+## @param pdb.create Create a PodDisruptionBudget
+## @param pdb.minAvailable Minimum number of pods that must be available (string or int)
+## @param pdb.maxUnavailable Maximum number of pods that can be unavailable (string or int)
+pdb:
+  create: false
+  minAvailable: 1
+  maxUnavailable: ""

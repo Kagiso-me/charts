@@ -1,0 +1,44 @@
+name: Update Chart Docs
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "charts/**/values.yaml"
+      - "charts/**/Chart.yaml"
+      - "charts/**/README.md.gotmpl"
+
+permissions: {}
+
+jobs:
+  helm-docs:
+    name: Regenerate README from values comments
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run helm-docs
+        uses: losisin/helm-docs-github-action@v1
+        with:
+          chart-search-root: charts
+          output-file: README.md
+          template-files: README.md.gotmpl
+
+      - name: Commit updated README files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --exit-code; then
+            git add charts/**/README.md
+            git commit -m "docs: auto-update chart READMEs [skip ci]"
+            git push
+          fi
