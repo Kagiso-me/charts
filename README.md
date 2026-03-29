@@ -9,6 +9,12 @@
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/kagiso-me)](https://artifacthub.io/packages/search?repo=kagiso-me)
 ![License](https://img.shields.io/github/license/Kagiso-me/charts)
 ![GitHub last commit](https://img.shields.io/github/last-commit/Kagiso-me/charts)
+![GitHub release](https://img.shields.io/github/v/release/Kagiso-me/charts?label=latest)
+![GitHub stars](https://img.shields.io/github/stars/Kagiso-me/charts?style=flat)
+![CI](https://img.shields.io/github/actions/workflow/status/Kagiso-me/charts/lint-test.yaml?label=CI&logo=github)
+![Helm](https://img.shields.io/badge/Helm-3.8%2B-0F1689?logo=helm)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-1.23%2B-326CE5?logo=kubernetes&logoColor=white)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/Kagiso-me/charts/badge)](https://securityscorecards.dev/viewer/?uri=github.com/Kagiso-me/charts)
 
 </div>
 
