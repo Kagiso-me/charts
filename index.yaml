@@ -6,6 +6,63 @@ entries:
       artifacthub.io/changes: |
         - kind: added
           description: Initial release
+        - kind: added
+          description: "metrics: postgres_exporter sidecar, metrics Service, and Prometheus Operator ServiceMonitor"
+        - kind: added
+          description: "security: seccompProfile RuntimeDefault, readOnlyRootFilesystem enforced, auth.usePasswordFiles"
+        - kind: added
+          description: "operations: terminationGracePeriodSeconds, lifecycleHooks, persistentVolumeClaimRetentionPolicy, revisionHistoryLimit, minReadySeconds"
+        - kind: added
+          description: "scheduling: affinity presets (soft/hard), topologySpreadConstraints, priorityClassName, schedulerName"
+        - kind: added
+          description: "init: volumePermissions init container, initdb scripts support"
+        - kind: added
+          description: "override: primary.command and primary.args for full container command control"
+        - kind: changed
+          description: "BREAKING: readOnlyRootFilesystem now defaults to true; /var/run/postgresql emptyDir added for socket"
+      artifacthub.io/images: |
+        - name: postgresql
+          image: docker.io/postgres:17.4-alpine
+        - name: postgres-exporter
+          image: docker.io/prometheuscommunity/postgres-exporter:v0.15.0
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://www.postgresql.org/docs/
+        - name: Source
+          url: https://github.com/phil-mcgee/charts/tree/main/charts/postgresql
+      artifacthub.io/maintainers: |
+        - name: Phil
+          email: phil@kagiso.me
+    apiVersion: v2
+    appVersion: 17.4.0
+    created: "2026-04-03T20:19:00.821005346Z"
+    description: 'PostgreSQL is an open source object-relational database known for
+      reliability and data integrity. ACID-compliant, it supports foreign keys, joins,
+      views, triggers and stored procedures. '
+    digest: 5df5640c201e74bb95ef24fe0bf7c5e68cdde938a9c69170f0de7a0c566f1a63
+    home: https://www.postgresql.org
+    icon: https://wiki.postgresql.org/images/a/a4/PostgreSQL_logo.3colors.svg
+    keywords:
+    - postgresql
+    - postgres
+    - database
+    - sql
+    maintainers:
+    - email: phil@kagiso.me
+      name: Phil
+    name: postgresql
+    sources:
+    - https://github.com/docker-library/postgres
+    type: application
+    urls:
+    - postgresql-0.3.0.tgz
+    version: 0.3.0
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release
       artifacthub.io/images: |
         - name: postgresql
           image: docker.io/postgres:17.4-alpine
@@ -42,4 +99,57 @@ entries:
     urls:
     - postgresql-0.1.0.tgz
     version: 0.1.0
-generated: "2026-03-29T10:24:29.062907142Z"
+  redis:
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release with full production-grade feature set
+        - kind: added
+          description: "security: seccompProfile RuntimeDefault, readOnlyRootFilesystem, auth.usePasswordFiles, disableCommands"
+        - kind: added
+          description: "operations: terminationGracePeriodSeconds, lifecycleHooks, persistentVolumeClaimRetentionPolicy, revisionHistoryLimit, minReadySeconds"
+        - kind: added
+          description: "scheduling: affinity presets (soft/hard), topologySpreadConstraints, priorityClassName, schedulerName"
+        - kind: added
+          description: "init: volumePermissions init container, sysctl init container for kernel tuning"
+        - kind: added
+          description: "override: master.command and master.args for full container command control"
+      artifacthub.io/images: |
+        - name: redis
+          image: docker.io/redis:7.4.2-alpine
+        - name: redis-exporter
+          image: docker.io/oliver006/redis_exporter:v1.62.0
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://redis.io/docs/
+        - name: Source
+          url: https://github.com/Kagiso-me/charts/tree/main/charts/redis
+      artifacthub.io/maintainers: |
+        - name: Phil
+          email: phil@kagiso.me
+    apiVersion: v2
+    appVersion: 7.4.2
+    created: "2026-04-03T20:19:00.979657904Z"
+    description: 'Redis is an open source, in-memory data structure store used as
+      a database, cache, message broker, and streaming engine. '
+    digest: 4794ecba17e0fef12ee38bc93bd70349c2b200d6d626c7e6b58292a16cb1bf2d
+    home: https://redis.io
+    icon: https://redis.io/images/redis-white.png
+    keywords:
+    - redis
+    - cache
+    - keyvalue
+    - database
+    maintainers:
+    - email: phil@kagiso.me
+      name: Phil
+    name: redis
+    sources:
+    - https://github.com/docker-library/redis
+    type: application
+    urls:
+    - redis-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-04-03T20:19:00.97966642Z"
