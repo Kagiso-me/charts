@@ -3,33 +3,595 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>kagiso-me Helm charts</title>
+  <title>kagiso-me/charts — Production-grade Helm charts</title>
+  <meta name="description" content="Production-grade Helm charts. Upstream images. Zero shortcuts." />
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1.5rem; color: #1a1a1a; }
-    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-    p { color: #555; margin-top: 0.25rem; }
-    pre { background: #f4f4f4; border-radius: 6px; padding: 1rem; font-size: 0.875rem; overflow-x: auto; }
-    a { color: #0969da; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080c14;
+      --surface: #0d1220;
+      --surface2: #111827;
+      --border: rgba(99,179,237,0.12);
+      --accent: #63b3ed;
+      --accent2: #9f7aea;
+      --accent3: #68d391;
+      --text: #e2e8f0;
+      --muted: #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(99,179,237,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,179,237,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(8,12,20,0.75);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-weight: 700; font-size: 0.95rem; color: var(--text);
+      text-decoration: none; letter-spacing: -0.01em;
+    }
+
+    .helm-icon { width: 28px; height: 28px; }
+
+    .nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+    .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.875rem; transition: color 0.2s; }
+    .nav-links a:hover { color: var(--text); }
+
+    .nav-badge {
+      background: rgba(99,179,237,0.1); border: 1px solid rgba(99,179,237,0.3);
+      color: var(--accent); font-size: 0.75rem; padding: 0.2rem 0.65rem;
+      border-radius: 99px; font-weight: 600; text-decoration: none; transition: background 0.2s;
+    }
+    .nav-badge:hover { background: rgba(99,179,237,0.2); }
+
+    /* HERO */
+    .hero {
+      position: relative; z-index: 1;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 8rem 2rem 5rem; text-align: center;
+    }
+
+    .hero-glow {
+      position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 500px;
+      background: radial-gradient(ellipse, rgba(99,179,237,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(99,179,237,0.08); border: 1px solid rgba(99,179,237,0.2);
+      border-radius: 99px; padding: 0.3rem 1rem;
+      font-size: 0.78rem; color: var(--accent); font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 1.5rem;
+    }
+
+    .dot {
+      width: 6px; height: 6px; background: var(--accent3);
+      border-radius: 50%; animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    h1 {
+      font-size: clamp(2.75rem, 6vw, 4.75rem);
+      font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 1.25rem;
+    }
+
+    .line1 { display: block; color: var(--text); }
+
+    .line2 {
+      display: block;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 520px; margin: 0 auto 2.5rem; }
+
+    /* TERMINAL */
+    .terminal {
+      background: #070b13; border: 1px solid var(--border); border-radius: 14px;
+      width: 100%; max-width: 600px; overflow: hidden;
+      box-shadow: 0 0 0 1px rgba(99,179,237,0.04), 0 32px 64px rgba(0,0,0,0.6);
+      margin-bottom: 3.5rem;
+    }
+
+    .terminal-bar {
+      background: #0f1623; padding: 0.7rem 1rem;
+      display: flex; align-items: center; gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tdot { width: 11px; height: 11px; border-radius: 50%; }
+    .tdot.r { background: #ff5f57; } .tdot.y { background: #febc2e; } .tdot.g { background: #28c840; }
+
+    .terminal-title { flex: 1; text-align: center; font-size: 0.74rem; color: var(--muted); }
+
+    .copy-btn {
+      background: rgba(99,179,237,0.1); border: 1px solid rgba(99,179,237,0.2);
+      color: var(--accent); border-radius: 6px; padding: 0.18rem 0.6rem;
+      font-size: 0.72rem; cursor: pointer; font-family: inherit; transition: background 0.2s;
+    }
+    .copy-btn:hover { background: rgba(99,179,237,0.2); }
+    .copy-btn.copied { color: var(--accent3); border-color: rgba(104,211,145,0.3); }
+
+    .terminal-body {
+      padding: 1.25rem 1.5rem;
+      font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 0.84rem; line-height: 2.1;
+    }
+
+    .cmd-line { display: flex; align-items: baseline; gap: 0.5rem; }
+    .prompt { color: var(--accent3); user-select: none; }
+    .kw { color: var(--accent); }
+    .arg { color: #fbd38d; }
+    .url { color: var(--accent2); }
+    .out { color: #4a5568; padding-left: 1.25rem; font-size: 0.78rem; }
+    .out.ok { color: var(--accent3); }
+
+    /* STATS */
+    .stats-strip {
+      position: relative; z-index: 1;
+      display: flex; justify-content: center; flex-wrap: wrap;
+      max-width: 840px; margin: 0 auto;
+      border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; background: var(--surface);
+    }
+
+    .stat {
+      flex: 1; min-width: 160px; padding: 1.75rem 1.5rem;
+      text-align: center; border-right: 1px solid var(--border);
+    }
+    .stat:last-child { border-right: none; }
+
+    .stat-value {
+      font-size: 2.1rem; font-weight: 800; letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      display: block;
+    }
+
+    .stat-label { font-size: 0.76rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 0.25rem; }
+
+    /* SECTIONS */
+    section { position: relative; z-index: 1; max-width: 1020px; margin: 0 auto; padding: 5rem 2rem; }
+
+    .section-label { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+    .section-title { font-size: clamp(1.75rem, 3vw, 2.5rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+    .section-sub { color: var(--muted); font-size: 1rem; max-width: 540px; margin-bottom: 3rem; }
+
+    /* CHART CARDS */
+    .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1.5rem; }
+
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      overflow: hidden; transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+      text-decoration: none; color: inherit; display: block;
+    }
+
+    .chart-card:hover { transform: translateY(-5px); }
+    .chart-card.pg:hover { border-color: rgba(51,103,145,0.55); box-shadow: 0 20px 48px rgba(51,103,145,0.18); }
+    .chart-card.redis:hover { border-color: rgba(212,62,29,0.45); box-shadow: 0 20px 48px rgba(212,62,29,0.14); }
+
+    .card-header {
+      padding: 1.5rem 1.5rem 1.1rem;
+      display: flex; align-items: center; gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-icon {
+      width: 50px; height: 50px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0;
+    }
+    .card-icon.pg { background: rgba(51,103,145,0.18); }
+    .card-icon.redis { background: rgba(212,62,29,0.14); }
+
+    .card-meta { flex: 1; }
+    .card-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.15rem; }
+    .card-desc { font-size: 0.81rem; color: var(--muted); }
+
+    .version-badge {
+      background: rgba(99,179,237,0.08); border: 1px solid rgba(99,179,237,0.2);
+      color: var(--accent); font-size: 0.72rem; padding: 0.2rem 0.6rem;
+      border-radius: 99px; font-weight: 600; font-family: monospace;
+    }
+
+    .card-features {
+      padding: 1.25rem 1.5rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem;
+    }
+
+    .feature {
+      display: flex; align-items: center; gap: 0.5rem;
+      font-size: 0.81rem; color: var(--muted);
+    }
+
+    .ficon {
+      width: 17px; height: 17px; border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.65rem; background: rgba(104,211,145,0.1); color: var(--accent3);
+    }
+
+    .card-footer {
+      padding: 0.9rem 1.5rem; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.79rem; color: var(--muted);
+    }
+
+    .card-footer .mono { font-family: monospace; }
+    .ah-link { color: var(--accent); font-weight: 600; }
+
+    /* PRINCIPLES */
+    .principles-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+    }
+
+    .principle { background: var(--surface); padding: 2rem; transition: background 0.2s; }
+    .principle:hover { background: var(--surface2); }
+
+    .p-icon {
+      width: 40px; height: 40px; border-radius: 10px; margin-bottom: 1rem;
+      display: flex; align-items: center; justify-content: center; font-size: 1.15rem;
+    }
+
+    .principle h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .principle p { font-size: 0.81rem; color: var(--muted); line-height: 1.65; }
+    .principle code { font-family: monospace; font-size: 0.78rem; color: var(--accent); }
+
+    /* INSTALL */
+    .install-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    @media (max-width: 720px) {
+      .install-grid, .chart-grid { grid-template-columns: 1fr; }
+      nav { padding: 0.75rem 1rem; }
+      .nav-links li:nth-child(-n+2) { display: none; }
+    }
+
+    .install-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+
+    .install-card-header {
+      padding: 0.9rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .install-card-header span:first-child { font-size: 0.81rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .install-card pre {
+      padding: 1.25rem 1.5rem;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.82rem; line-height: 1.9; overflow-x: auto; color: var(--text);
+    }
+
+    /* FOOTER */
+    footer {
+      position: relative; z-index: 1;
+      border-top: 1px solid var(--border); padding: 2rem;
+      text-align: center; font-size: 0.81rem; color: var(--muted);
+      display: flex; align-items: center; justify-content: center; gap: 2rem; flex-wrap: wrap;
+    }
+    footer a { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    footer a:hover { color: var(--text); }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: rgba(99,179,237,0.15); border-radius: 3px; }
+
+    .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
-  <h1>kagiso-me / charts</h1>
-  <p>Production-grade Helm charts. Upstream images. Zero shortcuts.</p>
 
-  <h2>Add the repo</h2>
-  <pre>helm repo add kagiso-me https://kagiso-me.github.io/charts
-helm repo update
-helm search repo kagiso-me</pre>
+<canvas id="stars"></canvas>
 
-  <h2>Charts</h2>
-  <ul>
-    <li><a href="https://artifacthub.io/packages/helm/kagiso-me/postgresql">postgresql</a></li>
-    <li><a href="https://artifacthub.io/packages/helm/kagiso-me/redis">redis</a></li>
+<nav>
+  <a href="#" class="nav-brand">
+    <svg class="helm-icon" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="16" cy="16" r="3" fill="#63b3ed"/>
+      <circle cx="16" cy="16" r="6" stroke="#63b3ed" stroke-width="1.5" fill="none"/>
+      <circle cx="16" cy="16" r="13" stroke="#63b3ed" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+      <line x1="16" y1="3" x2="16" y2="10" stroke="#63b3ed" stroke-width="1.5"/>
+      <line x1="16" y1="22" x2="16" y2="29" stroke="#63b3ed" stroke-width="1.5"/>
+      <line x1="3" y1="16" x2="10" y2="16" stroke="#63b3ed" stroke-width="1.5"/>
+      <line x1="22" y1="16" x2="29" y2="16" stroke="#63b3ed" stroke-width="1.5"/>
+    </svg>
+    kagiso-me/charts
+  </a>
+  <ul class="nav-links">
+    <li><a href="#charts">Charts</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="https://github.com/Kagiso-me/charts" target="_blank">GitHub</a></li>
+    <li><a href="https://artifacthub.io/packages/search?repo=kagiso-me" target="_blank" class="nav-badge">Artifact Hub ↗</a></li>
   </ul>
+</nav>
 
-  <p>
-    <a href="https://github.com/Kagiso-me/charts">GitHub</a> ·
-    <a href="https://artifacthub.io/packages/search?repo=kagiso-me">Artifact Hub</a>
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-glow"></div>
+
+  <div class="hero-eyebrow fade-up">
+    <span class="dot"></span>
+    Production-ready · Upstream images · Schema-validated
+  </div>
+
+  <h1 class="fade-up">
+    <span class="line1">Helm charts that</span>
+    <span class="line2">get it right.</span>
+  </h1>
+
+  <p class="hero-sub fade-up">
+    Not just charts that get you running — charts that get you running <em>right</em>.
+    Secure by default. Honest defaults. Zero shortcuts.
   </p>
+
+  <div class="terminal fade-up">
+    <div class="terminal-bar">
+      <div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div>
+      <div class="terminal-title">bash — kagiso-me</div>
+      <button class="copy-btn" onclick="copyInstall(this)">copy</button>
+    </div>
+    <div class="terminal-body">
+      <div class="cmd-line"><span class="prompt">$</span><span><span class="kw">helm</span> repo add kagiso-me <span class="url">https://kagiso-me.github.io/charts</span></span></div>
+      <div class="out ok">"kagiso-me" has been added to your repositories</div>
+      <div class="cmd-line"><span class="prompt">$</span><span><span class="kw">helm</span> repo update</span></div>
+      <div class="out ok">Successfully got an update from the "kagiso-me" chart repository</div>
+      <div class="cmd-line"><span class="prompt">$</span><span><span class="kw">helm</span> search repo <span class="arg">kagiso-me</span></span></div>
+      <div class="out">NAME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CHART&nbsp;VERSION&nbsp;&nbsp;&nbsp;APP&nbsp;VERSION</div>
+      <div class="out ok">kagiso-me/postgresql&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.3.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;17.4.0</div>
+      <div class="out ok">kagiso-me/redis&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.1.0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.4.2</div>
+    </div>
+  </div>
+
+  <div class="stats-strip fade-up">
+    <div class="stat"><span class="stat-value">2</span><span class="stat-label">Charts published</span></div>
+    <div class="stat"><span class="stat-value">100%</span><span class="stat-label">Upstream images</span></div>
+    <div class="stat"><span class="stat-value">∅</span><span class="stat-label">Shortcuts taken</span></div>
+    <div class="stat"><span class="stat-value">✓</span><span class="stat-label">Schema validated</span></div>
+  </div>
+</div>
+
+<!-- CHARTS -->
+<section id="charts">
+  <div class="section-label fade-up">Charts</div>
+  <h2 class="section-title fade-up">Everything in the catalogue</h2>
+  <p class="section-sub fade-up">Each chart is built once, built properly, and stays that way.</p>
+
+  <div class="chart-grid">
+    <a class="chart-card pg fade-up" href="https://artifacthub.io/packages/helm/kagiso-me/postgresql" target="_blank">
+      <div class="card-header">
+        <div class="card-icon pg">🐘</div>
+        <div class="card-meta">
+          <div class="card-name">postgresql</div>
+          <div class="card-desc">ACID-compliant relational database</div>
+        </div>
+        <span class="version-badge">0.3.0</span>
+      </div>
+      <div class="card-features">
+        <div class="feature"><div class="ficon">✓</div>seccompProfile enforced</div>
+        <div class="feature"><div class="ficon">✓</div>readOnlyRootFilesystem</div>
+        <div class="feature"><div class="ficon">✓</div>Prometheus exporter</div>
+        <div class="feature"><div class="ficon">✓</div>ServiceMonitor</div>
+        <div class="feature"><div class="ficon">✓</div>Affinity presets</div>
+        <div class="feature"><div class="ficon">✓</div>initdb scripts</div>
+        <div class="feature"><div class="ficon">✓</div>Checksum annotations</div>
+        <div class="feature"><div class="ficon">✓</div>Volume permissions init</div>
+        <div class="feature"><div class="ficon">✓</div>usePasswordFiles</div>
+        <div class="feature"><div class="ficon">✓</div>PVC retention policy</div>
+      </div>
+      <div class="card-footer">
+        <span>App version: <span class="mono">PostgreSQL 17.4</span></span>
+        <span class="ah-link">View on Artifact Hub ↗</span>
+      </div>
+    </a>
+
+    <a class="chart-card redis fade-up" href="https://artifacthub.io/packages/helm/kagiso-me/redis" target="_blank">
+      <div class="card-header">
+        <div class="card-icon redis">⚡</div>
+        <div class="card-meta">
+          <div class="card-name">redis</div>
+          <div class="card-desc">In-memory data structure store</div>
+        </div>
+        <span class="version-badge">0.1.0</span>
+      </div>
+      <div class="card-features">
+        <div class="feature"><div class="ficon">✓</div>seccompProfile enforced</div>
+        <div class="feature"><div class="ficon">✓</div>readOnlyRootFilesystem</div>
+        <div class="feature"><div class="ficon">✓</div>redis_exporter sidecar</div>
+        <div class="feature"><div class="ficon">✓</div>ServiceMonitor</div>
+        <div class="feature"><div class="ficon">✓</div>Affinity presets</div>
+        <div class="feature"><div class="ficon">✓</div>FLUSHDB/FLUSHALL disabled</div>
+        <div class="feature"><div class="ficon">✓</div>Checksum annotations</div>
+        <div class="feature"><div class="ficon">✓</div>sysctl init container</div>
+        <div class="feature"><div class="ficon">✓</div>usePasswordFiles</div>
+        <div class="feature"><div class="ficon">✓</div>PVC retention policy</div>
+      </div>
+      <div class="card-footer">
+        <span>App version: <span class="mono">Redis 7.4.2</span></span>
+        <span class="ah-link">View on Artifact Hub ↗</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- PHILOSOPHY -->
+<section>
+  <div class="section-label fade-up">Philosophy</div>
+  <h2 class="section-title fade-up">What sets these apart</h2>
+  <p class="section-sub fade-up">Every decision is deliberate. Nothing is here by accident.</p>
+
+  <div class="principles-grid">
+    <div class="principle fade-up">
+      <div class="p-icon" style="background:rgba(99,179,237,0.1);">🔒</div>
+      <h3>Secure by default</h3>
+      <p>Non-root containers, dropped capabilities, <code>seccompProfile: RuntimeDefault</code>, and <code>readOnlyRootFilesystem</code> — on from day one, not retrofitted later.</p>
+    </div>
+    <div class="principle fade-up">
+      <div class="p-icon" style="background:rgba(159,122,234,0.1);">📐</div>
+      <h3>Schema-validated</h3>
+      <p>Every <code>values.yaml</code> is backed by a strict JSON Schema. Bad configuration fails at <code>helm install</code>, not at 3am when your pager goes off.</p>
+    </div>
+    <div class="principle fade-up">
+      <div class="p-icon" style="background:rgba(104,211,145,0.1);">📦</div>
+      <h3>Upstream images only</h3>
+      <p>No custom builds, no vendored binaries. You always know exactly what's running — straight from the official source registry.</p>
+    </div>
+    <div class="principle fade-up">
+      <div class="p-icon" style="background:rgba(251,211,141,0.1);">⚖️</div>
+      <h3>Honest defaults</h3>
+      <p>Resource requests and limits set to real numbers based on actual workload profiles — not zeros, not wild overestimates.</p>
+    </div>
+    <div class="principle fade-up">
+      <div class="p-icon" style="background:rgba(245,101,101,0.1);">🔄</div>
+      <h3>GitOps-native</h3>
+      <p>Checksum annotations on pod templates mean any change to a Secret or ConfigMap auto-triggers a rolling update. No manual restarts.</p>
+    </div>
+    <div class="principle fade-up">
+      <div class="p-icon" style="background:rgba(99,179,237,0.1);">🎛️</div>
+      <h3>Opt-in complexity</h3>
+      <p>NetworkPolicy, PodDisruptionBudget, affinity presets, sysctl tuning — all there when you need them, completely out of the way when you don't.</p>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section id="install">
+  <div class="section-label fade-up">Install</div>
+  <h2 class="section-title fade-up">Get started in seconds</h2>
+  <p class="section-sub fade-up">Add the repo once, install any chart, override what you need.</p>
+
+  <div class="install-grid">
+    <div class="install-card fade-up">
+      <div class="install-card-header">
+        <span>PostgreSQL</span>
+        <span style="font-family:monospace;font-size:0.8rem;color:var(--accent);">v17.4</span>
+      </div>
+      <pre><span class="kw">helm</span> install postgresql \
+  <span class="arg">kagiso-me/postgresql</span> \
+  --namespace databases \
+  --create-namespace \
+  --set <span class="url">auth.existingSecret</span>=pg-secret \
+  --set <span class="url">primary.persistence.storageClass</span>=fast \
+  --set <span class="url">metrics.enabled</span>=true</pre>
+    </div>
+    <div class="install-card fade-up">
+      <div class="install-card-header">
+        <span>Redis</span>
+        <span style="font-family:monospace;font-size:0.8rem;color:var(--accent);">v7.4.2</span>
+      </div>
+      <pre><span class="kw">helm</span> install redis \
+  <span class="arg">kagiso-me/redis</span> \
+  --namespace databases \
+  --create-namespace \
+  --set <span class="url">auth.existingSecret</span>=redis-secret \
+  --set <span class="url">master.persistence.storageClass</span>=fast \
+  --set <span class="url">metrics.enabled</span>=true</pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>© 2025 Kagiso-me</span>
+  <a href="https://github.com/Kagiso-me/charts" target="_blank">GitHub</a>
+  <a href="https://artifacthub.io/packages/search?repo=kagiso-me" target="_blank">Artifact Hub</a>
+  <a href="https://kagiso-me.github.io/charts/index.yaml" target="_blank">index.yaml</a>
+  <span>Apache-2.0</span>
+</footer>
+
+<script>
+  // STARFIELD
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function initStars() {
+    stars = Array.from({ length: 220 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: Math.random() * 1.1 + 0.2,
+      o: Math.random() * 0.55 + 0.1,
+      speed: Math.random() * 0.012 + 0.003,
+      phase: Math.random() * Math.PI * 2
+    }));
+  }
+
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    frame++;
+    for (const s of stars) {
+      const opacity = s.o + Math.sin(frame * s.speed + s.phase) * 0.14;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(226,232,240,${Math.max(0, opacity)})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+
+  resize(); initStars(); draw();
+  window.addEventListener('resize', () => { resize(); initStars(); });
+
+  // SCROLL ANIMATIONS
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 55);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // COPY BUTTON
+  function copyInstall(btn) {
+    navigator.clipboard.writeText(
+      'helm repo add kagiso-me https://kagiso-me.github.io/charts\nhelm repo update\nhelm search repo kagiso-me'
+    ).then(() => {
+      btn.textContent = 'copied ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
 </body>
 </html>
