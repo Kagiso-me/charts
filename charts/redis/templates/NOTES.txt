@@ -1,0 +1,47 @@
+Redis has been deployed successfully.
+
+** Connection info **
+
+From within the cluster:
+  Host: {{ include "redis.master.fullname" . }}.{{ include "redis.namespace" . }}.svc.{{ .Values.clusterDomain }}
+  Port: {{ include "redis.port" . }}
+
+{{- if .Values.auth.enabled }}
+
+** Retrieve the password **
+
+  kubectl get secret --namespace {{ include "redis.namespace" . }} {{ include "redis.secretName" . }} \
+    -o jsonpath="{.data.{{ .Values.auth.existingSecretPasswordKey }}}" | base64 -d
+
+** Connect with redis-cli **
+
+  export REDIS_PASSWORD=$(kubectl get secret --namespace {{ include "redis.namespace" . }} {{ include "redis.secretName" . }} \
+    -o jsonpath="{.data.{{ .Values.auth.existingSecretPasswordKey }}}" | base64 -d)
+
+  kubectl run --namespace {{ include "redis.namespace" . }} redis-client --rm --tty -i --restart='Never' \
+    --image {{ include "redis.image" . }} \
+    --env REDIS_PASSWORD=$REDIS_PASSWORD \
+    -- redis-cli -h {{ include "redis.master.fullname" . }} -a $REDIS_PASSWORD
+
+{{- else }}
+
+** Connect with redis-cli **
+
+  kubectl run --namespace {{ include "redis.namespace" . }} redis-client --rm --tty -i --restart='Never' \
+    --image {{ include "redis.image" . }} \
+    -- redis-cli -h {{ include "redis.master.fullname" . }}
+
+{{- end }}
+
+{{- if .Values.metrics.enabled }}
+
+** Metrics **
+
+  The redis_exporter is running on port {{ .Values.metrics.service.port }}.
+  {{- if .Values.metrics.serviceMonitor.enabled }}
+  A ServiceMonitor has been created for Prometheus Operator.
+  {{- else }}
+  Enable metrics.serviceMonitor.enabled to create a Prometheus Operator ServiceMonitor.
+  {{- end }}
+
+{{- end }}

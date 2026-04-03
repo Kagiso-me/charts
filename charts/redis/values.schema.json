@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "PostgreSQL chart values",
+  "title": "Redis chart values",
   "type": "object",
   "additionalProperties": false,
   "properties": {
@@ -34,37 +34,25 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enablePostgresUser": { "type": "boolean" },
-        "postgresPassword": { "type": "string" },
-        "username": { "type": "string" },
+        "enabled": { "type": "boolean" },
         "password": { "type": "string" },
-        "database": { "type": "string" },
         "existingSecret": { "type": "string" },
-        "usePasswordFiles": { "type": "boolean" },
-        "secretKeys": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "adminPasswordKey": { "type": "string", "minLength": 1 },
-            "userPasswordKey": { "type": "string", "minLength": 1 },
-            "replicationPasswordKey": { "type": "string", "minLength": 1 }
-          }
-        }
+        "existingSecretPasswordKey": { "type": "string", "minLength": 1 },
+        "usePasswordFiles": { "type": "boolean" }
       }
     },
-    "primary": {
+    "master": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string" },
         "configuration": { "type": "string" },
-        "pgHbaConfiguration": { "type": "string" },
-        "replicaCount": { "type": "integer", "minimum": 1 },
+        "replicaCount": { "type": "integer", "minimum": 1, "maximum": 1 },
         "revisionHistoryLimit": { "type": "integer", "minimum": 0 },
         "minReadySeconds": { "type": "integer", "minimum": 0 },
         "terminationGracePeriodSeconds": { "type": "integer", "minimum": 0 },
         "command": { "type": "array", "items": { "type": "string" } },
         "args": { "type": "array", "items": { "type": "string" } },
+        "disableCommands": { "type": "array", "items": { "type": "string" } },
         "podAnnotations": { "type": "object" },
         "podLabels": { "type": "object" },
         "podSecurityContext": {
@@ -198,16 +186,6 @@
             "whenDeleted": { "type": "string", "enum": ["Retain", "Delete"] }
           }
         },
-        "initdb": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "scripts": { "type": "object" },
-            "scriptsConfigMap": { "type": "string" },
-            "user": { "type": "string" },
-            "password": { "type": "string" }
-          }
-        },
         "service": {
           "type": "object",
           "additionalProperties": false,
@@ -250,6 +228,25 @@
             "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
           }
         },
+        "resources": { "type": "object" }
+      }
+    },
+    "sysctl": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "registry": { "type": "string" },
+            "repository": { "type": "string" },
+            "tag": { "type": "string" },
+            "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] }
+          }
+        },
+        "command": { "type": "array" },
         "resources": { "type": "object" }
       }
     },

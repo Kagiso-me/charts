@@ -1,0 +1,17 @@
+{{ template "chart.header" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.badgesSection" . }}
+
+## Installing the chart
+
+```bash
+helm repo add kagiso-me https://kagiso-me.github.io/charts
+helm repo update
+helm install my-redis kagiso-me/redis
+```
+
+## Configuration
+
+{{ template "chart.valuesSection" . }}

@@ -50,8 +50,9 @@ helm search repo kagiso-me
 | Chart | App Version | Description |
 |-------|-------------|-------------|
 | [postgresql](charts/postgresql) | 17.4.0 | Open source relational database. ACID-compliant, battle-tested, boring in the best possible way. |
+| [redis](charts/redis) | 7.4.2 | In-memory data structure store. Cache, message broker, and streaming engine in one. |
 
-More charts are being added. Next up: `redis`, `nextcloud`, `authentik`, `immich`, `vaultwarden`, `n8n`, `wordpress`.
+More charts are being added. Next up: `nextcloud`, `authentik`, `immich`, `vaultwarden`, `n8n`, `wordpress`.
 
 ---
 

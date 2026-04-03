@@ -2,38 +2,38 @@
 # Known password for determinism, minimal resources, no persistence.
 
 auth:
-  enablePostgresUser: true
-  postgresPassword: "testpassword"
-  username: "testuser"
+  enabled: true
   password: "testpassword"
-  database: "testdb"
 
-primary:
+master:
   replicaCount: 1
 
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 64Mi
     limits:
-      cpu: 250m
-      memory: 256Mi
+      cpu: 100m
+      memory: 128Mi
 
   persistence:
     enabled: false
 
   startupProbe:
     enabled: true
-    initialDelaySeconds: 10
-    failureThreshold: 30
+    initialDelaySeconds: 5
+    failureThreshold: 15
 
-  initdb:
-    scripts:
-      create-test-extension.sql: |
-        -- Smoke-test: verify initdb scripts are sourced on first boot
-        SELECT 1;
+  # Smoke-test disableCommands
+  disableCommands:
+    - FLUSHDB
+    - FLUSHALL
 
 metrics:
   enabled: true
   serviceMonitor:
     enabled: false  # No Prometheus Operator in kind CI cluster
+
+# sysctl.enabled: false in CI — kind nodes don't allow privileged init containers
+sysctl:
+  enabled: false

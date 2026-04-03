@@ -1,15 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "postgresql.name" -}}
+{{- define "redis.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
-Truncate at 63 chars because some Kubernetes name fields are limited to 63 characters.
 */}}
-{{- define "postgresql.fullname" -}}
+{{- define "redis.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -23,39 +22,39 @@ Truncate at 63 chars because some Kubernetes name fields are limited to 63 chara
 {{- end }}
 
 {{/*
-Primary statefulset name.
+Master statefulset name.
 */}}
-{{- define "postgresql.primary.fullname" -}}
-{{- printf "%s-%s" (include "postgresql.fullname" .) .Values.primary.name | trunc 63 | trimSuffix "-" }}
+{{- define "redis.master.fullname" -}}
+{{- printf "%s-master" (include "redis.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
-Headless service name for the primary (used for stable pod DNS).
+Headless service name for the master (used for stable pod DNS).
 */}}
-{{- define "postgresql.primary.svc.headless" -}}
-{{- printf "%s-hl" (include "postgresql.primary.fullname" .) | trunc 63 | trimSuffix "-" }}
+{{- define "redis.master.svc.headless" -}}
+{{- printf "%s-hl" (include "redis.master.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "postgresql.chart" -}}
+{{- define "redis.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Namespace: allow override via .Values.namespaceOverride.
 */}}
-{{- define "postgresql.namespace" -}}
+{{- define "redis.namespace" -}}
 {{- default .Release.Namespace .Values.namespaceOverride }}
 {{- end }}
 
 {{/*
 Common labels applied to every resource.
 */}}
-{{- define "postgresql.labels" -}}
-helm.sh/chart: {{ include "postgresql.chart" . }}
-{{ include "postgresql.selectorLabels" . }}
+{{- define "redis.labels" -}}
+helm.sh/chart: {{ include "redis.chart" . }}
+{{ include "redis.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -68,25 +67,25 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels — used by Service selectors and StatefulSet matchLabels.
 */}}
-{{- define "postgresql.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "postgresql.name" . }}
+{{- define "redis.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "redis.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
-Primary-specific selector labels (adds component=primary so you can target just the primary).
+Master-specific selector labels.
 */}}
-{{- define "postgresql.primary.selectorLabels" -}}
-{{ include "postgresql.selectorLabels" . }}
-app.kubernetes.io/component: primary
+{{- define "redis.master.selectorLabels" -}}
+{{ include "redis.selectorLabels" . }}
+app.kubernetes.io/component: master
 {{- end }}
 
 {{/*
 ServiceAccount name.
 */}}
-{{- define "postgresql.serviceAccountName" -}}
+{{- define "redis.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "postgresql.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "redis.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
@@ -95,19 +94,18 @@ ServiceAccount name.
 {{/*
 Secret name for auth credentials.
 */}}
-{{- define "postgresql.secretName" -}}
+{{- define "redis.secretName" -}}
 {{- if .Values.auth.existingSecret }}
 {{- .Values.auth.existingSecret | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- include "postgresql.fullname" . }}
+{{- include "redis.fullname" . }}
 {{- end }}
 {{- end }}
 
 {{/*
 Resolve the container image, applying the global registry override if set.
-Usage: {{ include "postgresql.image" . }}
 */}}
-{{- define "postgresql.image" -}}
+{{- define "redis.image" -}}
 {{- $registry := coalesce .Values.global.imageRegistry .Values.image.registry }}
 {{- $repository := .Values.image.repository }}
 {{- $tag := .Values.image.tag | default .Chart.AppVersion }}
@@ -119,9 +117,46 @@ Usage: {{ include "postgresql.image" . }}
 {{- end }}
 
 {{/*
+Affinity preset helper.
+Renders a podAffinity or podAntiAffinity block for soft/hard presets.
+Usage: {{ include "redis.affinityPreset" (dict "preset" .Values.master.podAntiAffinityPreset "context" $) }}
+*/}}
+{{- define "redis.affinityPreset" -}}
+{{- if eq .preset "soft" }}
+preferredDuringSchedulingIgnoredDuringExecution:
+  - weight: 100
+    podAffinityTerm:
+      labelSelector:
+        matchLabels:
+          {{- include "redis.master.selectorLabels" .context | nindent 10 }}
+      topologyKey: kubernetes.io/hostname
+{{- else if eq .preset "hard" }}
+requiredDuringSchedulingIgnoredDuringExecution:
+  - labelSelector:
+      matchLabels:
+        {{- include "redis.master.selectorLabels" .context | nindent 8 }}
+    topologyKey: kubernetes.io/hostname
+{{- end }}
+{{- end }}
+
+{{/*
+Resolve the metrics exporter image, applying the global registry override if set.
+*/}}
+{{- define "redis.metrics.image" -}}
+{{- $registry := coalesce .Values.global.imageRegistry .Values.metrics.image.registry }}
+{{- $repository := .Values.metrics.image.repository }}
+{{- $tag := .Values.metrics.image.tag }}
+{{- if $registry }}
+{{- printf "%s/%s:%s" $registry $repository $tag }}
+{{- else }}
+{{- printf "%s:%s" $repository $tag }}
+{{- end }}
+{{- end }}
+
+{{/*
 Render imagePullSecrets — merges global and local lists.
 */}}
-{{- define "postgresql.imagePullSecrets" -}}
+{{- define "redis.imagePullSecrets" -}}
 {{- $pullSecrets := concat .Values.global.imagePullSecrets .Values.image.pullSecrets | uniq }}
 {{- if $pullSecrets }}
 imagePullSecrets:
@@ -132,66 +167,27 @@ imagePullSecrets:
 {{- end }}
 
 {{/*
-StorageClass for PVCs: primary.persistence.storageClass → global.storageClass → cluster default.
-Returning "-" disables dynamic provisioning (uses cluster default when empty).
+StorageClass for PVCs.
 */}}
-{{- define "postgresql.storageClass" -}}
-{{- $storageClass := coalesce .Values.primary.persistence.storageClass .Values.global.storageClass }}
+{{- define "redis.storageClass" -}}
+{{- $storageClass := coalesce .Values.master.persistence.storageClass .Values.global.storageClass }}
 {{- if $storageClass }}
 storageClassName: {{ $storageClass | quote }}
 {{- end }}
 {{- end }}
 
 {{/*
-Return true if a password secret should be created (i.e. no existingSecret).
+Return true if a password secret should be created.
 */}}
-{{- define "postgresql.createSecret" -}}
-{{- if not .Values.auth.existingSecret }}
+{{- define "redis.createSecret" -}}
+{{- if and .Values.auth.enabled (not .Values.auth.existingSecret) }}
 {{- true }}
 {{- end }}
 {{- end }}
 
 {{/*
-PostgreSQL port.
+Redis port.
 */}}
-{{- define "postgresql.port" -}}
-{{- .Values.primary.service.port | default 5432 }}
-{{- end }}
-
-{{/*
-Affinity preset helper.
-Renders a podAffinity or podAntiAffinity block for soft/hard presets.
-Usage: {{ include "postgresql.affinityPreset" (dict "preset" .Values.primary.podAntiAffinityPreset "context" $) }}
-*/}}
-{{- define "postgresql.affinityPreset" -}}
-{{- if eq .preset "soft" }}
-preferredDuringSchedulingIgnoredDuringExecution:
-  - weight: 100
-    podAffinityTerm:
-      labelSelector:
-        matchLabels:
-          {{- include "postgresql.primary.selectorLabels" .context | nindent 10 }}
-      topologyKey: kubernetes.io/hostname
-{{- else if eq .preset "hard" }}
-requiredDuringSchedulingIgnoredDuringExecution:
-  - labelSelector:
-      matchLabels:
-        {{- include "postgresql.primary.selectorLabels" .context | nindent 8 }}
-    topologyKey: kubernetes.io/hostname
-{{- end }}
-{{- end }}
-
-{{/*
-Resolve the metrics exporter image, applying the global registry override if set.
-Usage: {{ include "postgresql.metrics.image" . }}
-*/}}
-{{- define "postgresql.metrics.image" -}}
-{{- $registry := coalesce .Values.global.imageRegistry .Values.metrics.image.registry }}
-{{- $repository := .Values.metrics.image.repository }}
-{{- $tag := .Values.metrics.image.tag }}
-{{- if $registry }}
-{{- printf "%s/%s:%s" $registry $repository $tag }}
-{{- else }}
-{{- printf "%s:%s" $repository $tag }}
-{{- end }}
+{{- define "redis.port" -}}
+{{- .Values.master.service.port | default 6379 }}
 {{- end }}

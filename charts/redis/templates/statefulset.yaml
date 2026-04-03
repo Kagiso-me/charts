@@ -1,0 +1,383 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "redis.master.fullname" . }}
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: master
+  {{- with .Values.commonAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  replicas: {{ .Values.master.replicaCount }}
+  serviceName: {{ include "redis.master.svc.headless" . }}
+  revisionHistoryLimit: {{ .Values.master.revisionHistoryLimit }}
+  minReadySeconds: {{ .Values.master.minReadySeconds }}
+  selector:
+    matchLabels:
+      {{- include "redis.master.selectorLabels" . | nindent 6 }}
+  updateStrategy:
+    type: RollingUpdate
+  {{- if .Values.master.persistentVolumeClaimRetentionPolicy.enabled }}
+  persistentVolumeClaimRetentionPolicy:
+    whenScaled: {{ .Values.master.persistentVolumeClaimRetentionPolicy.whenScaled }}
+    whenDeleted: {{ .Values.master.persistentVolumeClaimRetentionPolicy.whenDeleted }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "redis.master.selectorLabels" . | nindent 8 }}
+        {{- with .Values.master.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- with .Values.master.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- include "redis.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "redis.serviceAccountName" . }}
+      terminationGracePeriodSeconds: {{ .Values.master.terminationGracePeriodSeconds }}
+      {{- if .Values.master.podSecurityContext.enabled }}
+      securityContext:
+        fsGroup: {{ .Values.master.podSecurityContext.fsGroup }}
+        runAsUser: {{ .Values.master.podSecurityContext.runAsUser }}
+        {{- with .Values.master.podSecurityContext.seccompProfile }}
+        seccompProfile:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      {{- if .Values.master.affinity }}
+      affinity:
+        {{- toYaml .Values.master.affinity | nindent 8 }}
+      {{- else if or .Values.master.podAffinityPreset .Values.master.podAntiAffinityPreset .Values.master.nodeAffinityPreset.type }}
+      affinity:
+        {{- with .Values.master.podAffinityPreset }}
+        podAffinity:
+          {{- include "redis.affinityPreset" (dict "preset" . "context" $) | nindent 10 }}
+        {{- end }}
+        {{- with .Values.master.podAntiAffinityPreset }}
+        podAntiAffinity:
+          {{- include "redis.affinityPreset" (dict "preset" . "context" $) | nindent 10 }}
+        {{- end }}
+        {{- if .Values.master.nodeAffinityPreset.type }}
+        nodeAffinity:
+          {{- if eq .Values.master.nodeAffinityPreset.type "soft" }}
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: {{ .Values.master.nodeAffinityPreset.key }}
+                    operator: In
+                    values:
+                      {{- toYaml .Values.master.nodeAffinityPreset.values | nindent 22 }}
+          {{- else if eq .Values.master.nodeAffinityPreset.type "hard" }}
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: {{ .Values.master.nodeAffinityPreset.key }}
+                    operator: In
+                    values:
+                      {{- toYaml .Values.master.nodeAffinityPreset.values | nindent 22 }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+      {{- with .Values.master.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.master.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- with .Values.master.schedulerName }}
+      schedulerName: {{ . }}
+      {{- end }}
+      {{- if or .Values.sysctl.enabled .Values.volumePermissions.enabled .Values.master.initContainers }}
+      initContainers:
+        {{- if .Values.sysctl.enabled }}
+        - name: sysctl
+          image: {{ .Values.sysctl.image.registry }}/{{ .Values.sysctl.image.repository }}:{{ .Values.sysctl.image.tag }}
+          imagePullPolicy: {{ .Values.sysctl.image.pullPolicy }}
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          command:
+            {{- toYaml .Values.sysctl.command | nindent 12 }}
+          {{- with .Values.sysctl.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
+        {{- if and .Values.volumePermissions.enabled .Values.master.persistence.enabled }}
+        - name: volume-permissions
+          image: {{ .Values.volumePermissions.image.registry }}/{{ .Values.volumePermissions.image.repository }}:{{ .Values.volumePermissions.image.tag }}
+          imagePullPolicy: {{ .Values.volumePermissions.image.pullPolicy }}
+          securityContext:
+            runAsUser: 0
+          command:
+            - /bin/sh
+            - -c
+            - chown -R {{ .Values.master.podSecurityContext.runAsUser }}:{{ .Values.master.podSecurityContext.fsGroup }} /data
+          {{- with .Values.volumePermissions.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+        {{- end }}
+        {{- with .Values.master.initContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+      containers:
+        - name: redis
+          image: {{ include "redis.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.master.command }}
+          command:
+            {{- toYaml .Values.master.command | nindent 12 }}
+          {{- else }}
+          command:
+            - redis-server
+            {{- if .Values.master.configuration }}
+            - /etc/redis/redis.conf
+            {{- end }}
+            {{- if .Values.auth.enabled }}
+            {{- if .Values.auth.usePasswordFiles }}
+            - --requirepass-file
+            - /opt/redis/secrets/{{ .Values.auth.existingSecretPasswordKey }}
+            {{- else }}
+            - --requirepass
+            - $(REDIS_PASSWORD)
+            {{- end }}
+            {{- end }}
+            {{- range .Values.master.disableCommands }}
+            - --rename-command
+            - {{ . | upper | quote }}
+            - ""
+            {{- end }}
+          {{- end }}
+          {{- with .Values.master.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- if .Values.master.containerSecurityContext.enabled }}
+          securityContext:
+            runAsNonRoot: {{ .Values.master.containerSecurityContext.runAsNonRoot }}
+            allowPrivilegeEscalation: {{ .Values.master.containerSecurityContext.allowPrivilegeEscalation }}
+            readOnlyRootFilesystem: {{ .Values.master.containerSecurityContext.readOnlyRootFilesystem }}
+            {{- with .Values.master.containerSecurityContext.capabilities }}
+            capabilities:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with .Values.master.containerSecurityContext.seccompProfile }}
+            seccompProfile:
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          {{- end }}
+          env:
+            {{- if and .Values.auth.enabled (not .Values.auth.usePasswordFiles) }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ .Values.auth.existingSecretPasswordKey }}
+            {{- end }}
+            {{- with .Values.master.extraEnvVars }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: redis
+              containerPort: 6379
+              protocol: TCP
+          {{- if .Values.master.livenessProbe.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
+                - redis-cli -h 127.0.0.1 -p 6379 -a "$(cat /opt/redis/secrets/{{ .Values.auth.existingSecretPasswordKey }})" --no-auth-warning ping | grep -q PONG
+                {{- else if .Values.auth.enabled }}
+                - redis-cli -h 127.0.0.1 -p 6379 -a $(REDIS_PASSWORD) --no-auth-warning ping | grep -q PONG
+                {{- else }}
+                - redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG
+                {{- end }}
+            initialDelaySeconds: {{ .Values.master.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.livenessProbe.failureThreshold }}
+            successThreshold: {{ .Values.master.livenessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.master.readinessProbe.enabled }}
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
+                - redis-cli -h 127.0.0.1 -p 6379 -a "$(cat /opt/redis/secrets/{{ .Values.auth.existingSecretPasswordKey }})" --no-auth-warning ping | grep -q PONG
+                {{- else if .Values.auth.enabled }}
+                - redis-cli -h 127.0.0.1 -p 6379 -a $(REDIS_PASSWORD) --no-auth-warning ping | grep -q PONG
+                {{- else }}
+                - redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG
+                {{- end }}
+            initialDelaySeconds: {{ .Values.master.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.readinessProbe.failureThreshold }}
+            successThreshold: {{ .Values.master.readinessProbe.successThreshold }}
+          {{- end }}
+          {{- if .Values.master.startupProbe.enabled }}
+          startupProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                {{- if and .Values.auth.enabled .Values.auth.usePasswordFiles }}
+                - redis-cli -h 127.0.0.1 -p 6379 -a "$(cat /opt/redis/secrets/{{ .Values.auth.existingSecretPasswordKey }})" --no-auth-warning ping | grep -q PONG
+                {{- else if .Values.auth.enabled }}
+                - redis-cli -h 127.0.0.1 -p 6379 -a $(REDIS_PASSWORD) --no-auth-warning ping | grep -q PONG
+                {{- else }}
+                - redis-cli -h 127.0.0.1 -p 6379 ping | grep -q PONG
+                {{- end }}
+            initialDelaySeconds: {{ .Values.master.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.master.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.master.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.master.startupProbe.failureThreshold }}
+            successThreshold: {{ .Values.master.startupProbe.successThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.master.resources | nindent 12 }}
+          {{- with .Values.master.lifecycleHooks }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            {{- if .Values.master.configuration }}
+            - name: config
+              mountPath: /etc/redis
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.auth.usePasswordFiles }}
+            - name: redis-passwords
+              mountPath: /opt/redis/secrets
+              readOnly: true
+            {{- end }}
+            {{- with .Values.master.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+        {{- with .Values.master.sidecars }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- if .Values.metrics.enabled }}
+        - name: metrics
+          image: {{ include "redis.metrics.image" . }}
+          imagePullPolicy: {{ .Values.metrics.image.pullPolicy }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: REDIS_ADDR
+              value: "redis://127.0.0.1:6379"
+            {{- if .Values.auth.enabled }}
+            {{- if .Values.auth.usePasswordFiles }}
+            - name: REDIS_PASSWORD_FILE
+              value: /opt/redis/secrets/{{ .Values.auth.existingSecretPasswordKey }}
+            {{- else }}
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "redis.secretName" . }}
+                  key: {{ .Values.auth.existingSecretPasswordKey }}
+            {{- end }}
+            {{- end }}
+          ports:
+            - name: metrics
+              containerPort: 9121
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.metrics.resources | nindent 12 }}
+          {{- if .Values.auth.usePasswordFiles }}
+          volumeMounts:
+            - name: redis-passwords
+              mountPath: /opt/redis/secrets
+              readOnly: true
+          {{- end }}
+        {{- end }}
+      volumes:
+        {{- if .Values.master.configuration }}
+        - name: config
+          configMap:
+            name: {{ include "redis.master.fullname" . }}-config
+        {{- end }}
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.auth.usePasswordFiles }}
+        - name: redis-passwords
+          projected:
+            sources:
+              - secret:
+                  name: {{ include "redis.secretName" . }}
+                  items:
+                    - key: {{ .Values.auth.existingSecretPasswordKey }}
+                      path: {{ .Values.auth.existingSecretPasswordKey }}
+        {{- end }}
+        {{- if not .Values.master.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- else if .Values.master.persistence.existingClaim }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.master.persistence.existingClaim }}
+        {{- end }}
+        {{- with .Values.master.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+  {{- if and .Values.master.persistence.enabled (not .Values.master.persistence.existingClaim) }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        {{- with .Values.master.persistence.annotations }}
+        annotations:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+      spec:
+        accessModes:
+          {{- toYaml .Values.master.persistence.accessModes | nindent 10 }}
+        {{- include "redis.storageClass" . | nindent 8 }}
+        resources:
+          requests:
+            storage: {{ .Values.master.persistence.size | quote }}
+  {{- end }}

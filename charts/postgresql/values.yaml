@@ -44,6 +44,7 @@ image:
 ## @param auth.secretKeys.adminPasswordKey Key in the existing Secret for the superuser password
 ## @param auth.secretKeys.userPasswordKey Key in the existing Secret for the additional user password
 ## @param auth.secretKeys.replicationPasswordKey Key in the existing Secret for the replication user password
+## @param auth.usePasswordFiles Mount credentials as files instead of environment variables. Requires PostgreSQL 10+
 auth:
   enablePostgresUser: true
   postgresPassword: ""
@@ -51,6 +52,7 @@ auth:
   password: ""
   database: ""
   existingSecret: ""
+  usePasswordFiles: false
   secretKeys:
     adminPasswordKey: postgres-password
     userPasswordKey: password
@@ -61,28 +63,52 @@ auth:
 ## @param primary.configuration PostgreSQL configuration (postgresql.conf content). Merged with defaults
 ## @param primary.pgHbaConfiguration PostgreSQL client authentication config (pg_hba.conf content)
 ## @param primary.replicaCount Number of primary replicas (should stay at 1 unless you know what you're doing)
+## @param primary.revisionHistoryLimit Number of old ReplicaSets to retain for rollback
+## @param primary.minReadySeconds Minimum seconds a pod must be ready before being considered available
+## @param primary.terminationGracePeriodSeconds Seconds to wait for graceful shutdown before force-killing
+## @param primary.command Override the default container command (overrides image ENTRYPOINT)
+## @param primary.args Override the default container args (overrides image CMD)
 ## @param primary.podAnnotations Annotations for the primary pod
 ## @param primary.podLabels Extra labels for the primary pod
 ## @param primary.podSecurityContext.enabled Enable pod-level security context
 ## @param primary.podSecurityContext.fsGroup Group ID for the pod volumes
 ## @param primary.podSecurityContext.runAsUser User ID to run the container
+## @param primary.podSecurityContext.seccompProfile Seccomp profile for the pod
 ## @param primary.containerSecurityContext.enabled Enable container-level security context
 ## @param primary.containerSecurityContext.runAsNonRoot Require non-root user
 ## @param primary.containerSecurityContext.allowPrivilegeEscalation Forbid privilege escalation
 ## @param primary.containerSecurityContext.readOnlyRootFilesystem Mount root filesystem read-only
+## @param primary.containerSecurityContext.seccompProfile Seccomp profile for the container
 ## @param primary.resources.requests.cpu CPU request
 ## @param primary.resources.requests.memory Memory request
 ## @param primary.resources.limits.cpu CPU limit
 ## @param primary.resources.limits.memory Memory limit
+## @param primary.lifecycleHooks Lifecycle hooks for the primary container (preStop, postStart)
 ## @param primary.livenessProbe.enabled Enable liveness probe
 ## @param primary.readinessProbe.enabled Enable readiness probe
 ## @param primary.startupProbe.enabled Enable startup probe
+## @param primary.affinity Raw affinity rules. Takes precedence over affinity presets when set
+## @param primary.podAffinityPreset Pod affinity preset. Ignored when `primary.affinity` is set. Options: soft, hard
+## @param primary.podAntiAffinityPreset Pod anti-affinity preset. Ignored when `primary.affinity` is set. Options: soft, hard
+## @param primary.nodeAffinityPreset.type Node affinity type. Ignored when `primary.affinity` is set. Options: soft, hard
+## @param primary.nodeAffinityPreset.key Node label key for node affinity
+## @param primary.nodeAffinityPreset.values Node label values for node affinity
+## @param primary.topologySpreadConstraints Topology spread constraints for pod scheduling
+## @param primary.priorityClassName PriorityClass name for the primary pod
+## @param primary.schedulerName Custom scheduler name
 ## @param primary.persistence.enabled Enable PVC for data
 ## @param primary.persistence.existingClaim Use an existing PVC
 ## @param primary.persistence.storageClass StorageClass for the PVC
 ## @param primary.persistence.accessModes Access modes for the PVC
 ## @param primary.persistence.size PVC size
 ## @param primary.persistence.annotations Annotations for the PVC
+## @param primary.persistentVolumeClaimRetentionPolicy.enabled Enable PVC retention policy on StatefulSet scale/delete
+## @param primary.persistentVolumeClaimRetentionPolicy.whenScaled What to do with PVCs when the StatefulSet is scaled down
+## @param primary.persistentVolumeClaimRetentionPolicy.whenDeleted What to do with PVCs when the StatefulSet is deleted
+## @param primary.initdb.scripts Map of filename to script content for scripts to run on first boot
+## @param primary.initdb.scriptsConfigMap Existing ConfigMap with initdb scripts (overrides primary.initdb.scripts)
+## @param primary.initdb.user Username for initdb scripts (informational; scripts run as superuser)
+## @param primary.initdb.password Password for initdb scripts (informational; pass via extraEnvVars if needed)
 ## @param primary.service.type Service type
 ## @param primary.service.port PostgreSQL port
 ## @param primary.service.nodePort NodePort value when type is NodePort
@@ -98,6 +124,12 @@ primary:
   configuration: ""
   pgHbaConfiguration: ""
   replicaCount: 1
+  revisionHistoryLimit: 10
+  minReadySeconds: 0
+  terminationGracePeriodSeconds: 30
+
+  command: []
+  args: []
 
   podAnnotations: {}
   podLabels: {}
@@ -106,15 +138,19 @@ primary:
     enabled: true
     fsGroup: 999
     runAsUser: 999
+    seccompProfile:
+      type: RuntimeDefault
 
   containerSecurityContext:
     enabled: true
     runAsNonRoot: true
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false
+    readOnlyRootFilesystem: true
     capabilities:
       drop:
         - ALL
+    seccompProfile:
+      type: RuntimeDefault
 
   resources:
     requests:
@@ -123,6 +159,14 @@ primary:
     limits:
       cpu: 500m
       memory: 512Mi
+
+  ## lifecycleHooks for the primary container.
+  ## Example preStop for graceful shutdown:
+  ## lifecycleHooks:
+  ##   preStop:
+  ##     exec:
+  ##       command: ["/bin/sh", "-c", "pg_ctl stop -m fast"]
+  lifecycleHooks: {}
 
   livenessProbe:
     enabled: true
@@ -148,6 +192,23 @@ primary:
     failureThreshold: 15
     successThreshold: 1
 
+  ## Affinity rules. When `affinity` is set, it takes full precedence over all presets.
+  affinity: {}
+  ## Pod affinity preset: "" (disabled) | "soft" | "hard"
+  podAffinityPreset: ""
+  ## Pod anti-affinity preset: "" (disabled) | "soft" | "hard"
+  ## Soft anti-affinity is a good default to spread pods across nodes where possible.
+  podAntiAffinityPreset: soft
+  ## Node affinity preset
+  nodeAffinityPreset:
+    type: ""   # "" | "soft" | "hard"
+    key: ""
+    values: []
+
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  schedulerName: ""
+
   persistence:
     enabled: true
     existingClaim: ""
@@ -156,6 +217,30 @@ primary:
       - ReadWriteOnce
     size: 8Gi
     annotations: {}
+
+  ## PVC retention policy controls what happens to PVCs when the StatefulSet is scaled or deleted.
+  ## Requires Kubernetes 1.27+ (stable). Defaults to Retain for safety.
+  persistentVolumeClaimRetentionPolicy:
+    enabled: false
+    whenScaled: Retain
+    whenDeleted: Retain
+
+  ## Scripts run on first boot inside /docker-entrypoint-initdb.d/.
+  ## Scripts only execute when $PGDATA is empty (first-time init). They are ignored on pod restarts.
+  ## Supports .sql, .sql.gz, and .sh files. .sh files are made executable automatically.
+  ## Example:
+  ## initdb:
+  ##   scripts:
+  ##     create-extensions.sql: |
+  ##       CREATE EXTENSION IF NOT EXISTS pg_trgm;
+  ##     init.sh: |
+  ##       #!/bin/bash
+  ##       createdb mydb
+  initdb:
+    scripts: {}
+    scriptsConfigMap: ""
+    user: ""
+    password: ""
 
   service:
     type: ClusterIP
@@ -179,6 +264,24 @@ serviceAccount:
   name: ""
   annotations: {}
 
+## @section Volume Permissions
+## @param volumePermissions.enabled Run an init container to fix PVC ownership before the main container starts.
+## Enable this when using a storageClass that creates volumes owned by root (e.g. local-path).
+## The init container runs as root and chowns the volume to the runAsUser/fsGroup from podSecurityContext.
+## @param volumePermissions.image.registry Init container image registry
+## @param volumePermissions.image.repository Init container image repository
+## @param volumePermissions.image.tag Init container image tag
+## @param volumePermissions.image.pullPolicy Init container image pull policy
+## @param volumePermissions.resources Resource requests/limits for the init container
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: alpine
+    tag: "3.20"
+    pullPolicy: IfNotPresent
+  resources: {}
+
 ## @section Network Policy
 ## @param networkPolicy.enabled Enable NetworkPolicy
 ## @param networkPolicy.allowExternal Allow connections from any namespace (disables namespace isolation)
@@ -198,3 +301,48 @@ pdb:
   create: false
   minAvailable: 1
   maxUnavailable: ""
+
+## @section Metrics
+## @param metrics.enabled Enable the postgres_exporter sidecar
+## @param metrics.image.registry Exporter image registry
+## @param metrics.image.repository Exporter image repository
+## @param metrics.image.tag Exporter image tag
+## @param metrics.image.pullPolicy Exporter image pull policy
+## @param metrics.resources.requests.cpu Exporter CPU request
+## @param metrics.resources.requests.memory Exporter memory request
+## @param metrics.resources.limits.cpu Exporter CPU limit
+## @param metrics.resources.limits.memory Exporter memory limit
+## @param metrics.service.port Port for the metrics Service
+## @param metrics.service.annotations Annotations for the metrics Service
+## @param metrics.serviceMonitor.enabled Create a Prometheus Operator ServiceMonitor
+## @param metrics.serviceMonitor.namespace Namespace to create the ServiceMonitor in (defaults to release namespace)
+## @param metrics.serviceMonitor.interval Scrape interval
+## @param metrics.serviceMonitor.scrapeTimeout Scrape timeout
+## @param metrics.serviceMonitor.labels Additional labels for the ServiceMonitor
+## @param metrics.serviceMonitor.relabelings Relabeling rules for the ServiceMonitor
+## @param metrics.serviceMonitor.metricRelabelings Metric relabeling rules for the ServiceMonitor
+metrics:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: prometheuscommunity/postgres-exporter
+    tag: "v0.15.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    port: 9187
+    annotations: {}
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    relabelings: []
+    metricRelabelings: []

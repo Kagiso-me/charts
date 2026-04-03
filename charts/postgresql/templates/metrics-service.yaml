@@ -1,0 +1,24 @@
+{{- if .Values.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "postgresql.primary.fullname" . }}-metrics
+  namespace: {{ include "postgresql.namespace" . }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    app.kubernetes.io/component: metrics
+  {{- with merge (.Values.metrics.service.annotations | default dict) (.Values.commonAnnotations | default dict) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: metrics
+      port: {{ .Values.metrics.service.port }}
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    {{- include "postgresql.primary.selectorLabels" . | nindent 4 }}
+{{- end }}

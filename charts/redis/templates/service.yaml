@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "redis.master.fullname" . }}
+  namespace: {{ include "redis.namespace" . }}
+  labels:
+    {{- include "redis.labels" . | nindent 4 }}
+    app.kubernetes.io/component: master
+  {{- with merge (.Values.master.service.annotations | default dict) (.Values.commonAnnotations | default dict) }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.master.service.type }}
+  {{- if and (eq .Values.master.service.type "LoadBalancer") .Values.master.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.master.service.loadBalancerIP }}
+  {{- end }}
+  ports:
+    - name: redis
+      port: {{ .Values.master.service.port }}
+      targetPort: redis
+      protocol: TCP
+      {{- if and (eq .Values.master.service.type "NodePort") .Values.master.service.nodePort }}
+      nodePort: {{ .Values.master.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "redis.master.selectorLabels" . | nindent 4 }}

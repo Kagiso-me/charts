@@ -1,0 +1,49 @@
+apiVersion: v2
+name: redis
+description: >
+  Redis is an open source, in-memory data structure store used as a database,
+  cache, message broker, and streaming engine.
+type: application
+version: 0.1.0
+appVersion: "7.4.2"
+home: https://redis.io
+icon: https://redis.io/images/redis-white.png
+keywords:
+  - redis
+  - cache
+  - keyvalue
+  - database
+sources:
+  - https://github.com/docker-library/redis
+maintainers:
+  - name: Phil
+    email: phil@kagiso.me
+annotations:
+  artifacthub.io/category: database
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://redis.io/docs/
+    - name: Source
+      url: https://github.com/Kagiso-me/charts/tree/main/charts/redis
+  artifacthub.io/maintainers: |
+    - name: Phil
+      email: phil@kagiso.me
+  artifacthub.io/images: |
+    - name: redis
+      image: docker.io/redis:7.4.2-alpine
+    - name: redis-exporter
+      image: docker.io/oliver006/redis_exporter:v1.62.0
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release with full production-grade feature set
+    - kind: added
+      description: "security: seccompProfile RuntimeDefault, readOnlyRootFilesystem, auth.usePasswordFiles, disableCommands"
+    - kind: added
+      description: "operations: terminationGracePeriodSeconds, lifecycleHooks, persistentVolumeClaimRetentionPolicy, revisionHistoryLimit, minReadySeconds"
+    - kind: added
+      description: "scheduling: affinity presets (soft/hard), topologySpreadConstraints, priorityClassName, schedulerName"
+    - kind: added
+      description: "init: volumePermissions init container, sysctl init container for kernel tuning"
+    - kind: added
+      description: "override: master.command and master.args for full container command control"

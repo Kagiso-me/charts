@@ -1,0 +1,344 @@
+## @section Global parameters
+## @param global.imageRegistry Override registry for all images in this chart
+## @param global.imagePullSecrets Global list of image pull secret names
+## @param global.storageClass Override the default StorageClass for all PVCs
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+## @section Common parameters
+## @param nameOverride Override the chart name portion of resource names
+## @param fullnameOverride Override the full resource name prefix
+## @param namespaceOverride Override the namespace for all resources
+## @param commonLabels Labels added to every resource
+## @param commonAnnotations Annotations added to every resource
+## @param clusterDomain Kubernetes cluster domain
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonLabels: {}
+commonAnnotations: {}
+clusterDomain: cluster.local
+
+## @section Redis image
+## @param image.registry Container image registry
+## @param image.repository Container image repository
+## @param image.tag Container image tag
+## @param image.pullPolicy Image pull policy
+## @param image.pullSecrets List of image pull secret names
+image:
+  registry: docker.io
+  repository: redis
+  tag: "7.4.2-alpine"
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+
+## @section Authentication
+## @param auth.enabled Enable password authentication
+## @param auth.password Redis password. Ignored if `auth.existingSecret` is set
+## @param auth.existingSecret Name of an existing Secret containing the Redis password
+## @param auth.existingSecretPasswordKey Key in the existing Secret for the password
+## @param auth.usePasswordFiles Mount credentials as files instead of environment variables. Requires Redis 7.0+
+auth:
+  enabled: true
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: redis-password
+  usePasswordFiles: false
+
+## @section Redis master configuration
+## @param master.configuration Redis configuration (redis.conf content)
+## @param master.replicaCount Number of master replicas (must be 1 for standalone)
+## @param master.revisionHistoryLimit Number of old ReplicaSets to retain for rollback
+## @param master.minReadySeconds Minimum seconds a pod must be ready before being considered available
+## @param master.terminationGracePeriodSeconds Seconds to wait for graceful shutdown before force-killing
+## @param master.command Override the entire container command. Bypasses auth/disableCommands injection when set
+## @param master.args Override the container args
+## @param master.disableCommands Commands to disable by renaming to empty string (FLUSHDB, FLUSHALL by default)
+## @param master.podAnnotations Annotations for the master pod
+## @param master.podLabels Extra labels for the master pod
+## @param master.podSecurityContext.enabled Enable pod-level security context
+## @param master.podSecurityContext.fsGroup Group ID for the pod volumes
+## @param master.podSecurityContext.runAsUser User ID to run the container
+## @param master.podSecurityContext.seccompProfile Seccomp profile for the pod
+## @param master.containerSecurityContext.enabled Enable container-level security context
+## @param master.containerSecurityContext.runAsNonRoot Require non-root user
+## @param master.containerSecurityContext.allowPrivilegeEscalation Forbid privilege escalation
+## @param master.containerSecurityContext.readOnlyRootFilesystem Mount root filesystem read-only
+## @param master.containerSecurityContext.seccompProfile Seccomp profile for the container
+## @param master.resources.requests.cpu CPU request
+## @param master.resources.requests.memory Memory request
+## @param master.resources.limits.cpu CPU limit
+## @param master.resources.limits.memory Memory limit
+## @param master.lifecycleHooks Lifecycle hooks for the master container (preStop, postStart)
+## @param master.livenessProbe.enabled Enable liveness probe
+## @param master.readinessProbe.enabled Enable readiness probe
+## @param master.startupProbe.enabled Enable startup probe
+## @param master.affinity Raw affinity rules. Takes precedence over affinity presets when set
+## @param master.podAffinityPreset Pod affinity preset. Ignored when `master.affinity` is set. Options: soft, hard
+## @param master.podAntiAffinityPreset Pod anti-affinity preset. Ignored when `master.affinity` is set. Options: soft, hard
+## @param master.nodeAffinityPreset.type Node affinity type. Ignored when `master.affinity` is set. Options: soft, hard
+## @param master.nodeAffinityPreset.key Node label key for node affinity
+## @param master.nodeAffinityPreset.values Node label values for node affinity
+## @param master.topologySpreadConstraints Topology spread constraints for pod scheduling
+## @param master.priorityClassName PriorityClass name for the master pod
+## @param master.schedulerName Custom scheduler name
+## @param master.persistence.enabled Enable PVC for data
+## @param master.persistence.existingClaim Use an existing PVC
+## @param master.persistence.storageClass StorageClass for the PVC
+## @param master.persistence.accessModes Access modes for the PVC
+## @param master.persistence.size PVC size
+## @param master.persistence.annotations Annotations for the PVC
+## @param master.persistentVolumeClaimRetentionPolicy.enabled Enable PVC retention policy on StatefulSet scale/delete
+## @param master.persistentVolumeClaimRetentionPolicy.whenScaled What to do with PVCs when the StatefulSet is scaled down
+## @param master.persistentVolumeClaimRetentionPolicy.whenDeleted What to do with PVCs when the StatefulSet is deleted
+## @param master.service.type Service type
+## @param master.service.port Redis port
+## @param master.service.nodePort NodePort value when type is NodePort
+## @param master.service.loadBalancerIP LoadBalancerIP when type is LoadBalancer
+## @param master.service.annotations Annotations for the service
+## @param master.extraEnvVars Additional environment variables for the master container
+## @param master.extraVolumes Additional volumes for the master pod
+## @param master.extraVolumeMounts Additional volume mounts for the master container
+## @param master.initContainers Init containers to add to the master pod
+## @param master.sidecars Sidecar containers to add to the master pod
+master:
+  configuration: ""
+  replicaCount: 1
+  revisionHistoryLimit: 10
+  minReadySeconds: 0
+  terminationGracePeriodSeconds: 30
+
+  ## Override the full container command. When set, bypasses auth, disableCommands, and config injection.
+  command: []
+  args: []
+
+  ## Commands to disable by renaming to an empty string.
+  ## This prevents accidental data loss in production environments.
+  disableCommands:
+    - FLUSHDB
+    - FLUSHALL
+
+  podAnnotations: {}
+  podLabels: {}
+
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1000
+    runAsUser: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+  containerSecurityContext:
+    enabled: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  ## lifecycleHooks for the master container.
+  ## Example preStop for graceful shutdown:
+  ## lifecycleHooks:
+  ##   preStop:
+  ##     exec:
+  ##       command: ["/bin/sh", "-c", "redis-cli shutdown nosave"]
+  lifecycleHooks: {}
+
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 6
+    successThreshold: 1
+
+  startupProbe:
+    enabled: false
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 15
+    successThreshold: 1
+
+  ## Affinity rules. When `affinity` is set, it takes full precedence over all presets.
+  affinity: {}
+  ## Pod affinity preset: "" (disabled) | "soft" | "hard"
+  podAffinityPreset: ""
+  ## Pod anti-affinity preset: "" (disabled) | "soft" | "hard"
+  podAntiAffinityPreset: soft
+  ## Node affinity preset
+  nodeAffinityPreset:
+    type: ""   # "" | "soft" | "hard"
+    key: ""
+    values: []
+
+  topologySpreadConstraints: []
+  priorityClassName: ""
+  schedulerName: ""
+
+  persistence:
+    enabled: true
+    existingClaim: ""
+    storageClass: ""
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    annotations: {}
+
+  ## PVC retention policy controls what happens to PVCs when the StatefulSet is scaled or deleted.
+  ## Requires Kubernetes 1.27+ (stable). Defaults to Retain for safety.
+  persistentVolumeClaimRetentionPolicy:
+    enabled: false
+    whenScaled: Retain
+    whenDeleted: Retain
+
+  service:
+    type: ClusterIP
+    port: 6379
+    nodePort: ""
+    loadBalancerIP: ""
+    annotations: {}
+
+  extraEnvVars: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  initContainers: []
+  sidecars: []
+
+## @section Service Account
+## @param serviceAccount.create Create a service account for Redis pods
+## @param serviceAccount.name Name of the service account (auto-generated if empty)
+## @param serviceAccount.annotations Annotations for the service account
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+## @section Volume Permissions
+## @param volumePermissions.enabled Run an init container to fix PVC ownership before the main container starts.
+## Enable this when using a storageClass that creates volumes owned by root (e.g. local-path).
+## @param volumePermissions.image.registry Init container image registry
+## @param volumePermissions.image.repository Init container image repository
+## @param volumePermissions.image.tag Init container image tag
+## @param volumePermissions.image.pullPolicy Init container image pull policy
+## @param volumePermissions.resources Resource requests/limits for the init container
+volumePermissions:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: alpine
+    tag: "3.20"
+    pullPolicy: IfNotPresent
+  resources: {}
+
+## @section Sysctl
+## @param sysctl.enabled Run a privileged init container to set kernel parameters required by Redis.
+## Recommended settings: vm.overcommit_memory=1 (prevents OOM on background save), net.core.somaxconn=511.
+## WARNING: This init container runs privileged and writes to the host kernel. It will be rejected by
+## PodSecurity policies stricter than "privileged". Only enable on nodes you control.
+## @param sysctl.image.registry Sysctl init container image registry
+## @param sysctl.image.repository Sysctl init container image repository
+## @param sysctl.image.tag Sysctl init container image tag
+## @param sysctl.image.pullPolicy Sysctl init container image pull policy
+## @param sysctl.command Commands to run in the sysctl init container
+## @param sysctl.resources Resource requests/limits for the sysctl init container
+sysctl:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: alpine
+    tag: "3.20"
+    pullPolicy: IfNotPresent
+  command:
+    - /bin/sh
+    - -c
+    - |
+      sysctl -w vm.overcommit_memory=1
+      sysctl -w net.core.somaxconn=511
+  resources: {}
+
+## @section Network Policy
+## @param networkPolicy.enabled Enable NetworkPolicy
+## @param networkPolicy.allowExternal Allow connections from any namespace (disables namespace isolation)
+## @param networkPolicy.extraIngress Additional ingress rules to add to the NetworkPolicy
+## @param networkPolicy.extraEgress Additional egress rules to add to the NetworkPolicy
+networkPolicy:
+  enabled: false
+  allowExternal: true
+  extraIngress: []
+  extraEgress: []
+
+## @section Pod Disruption Budget
+## @param pdb.create Create a PodDisruptionBudget
+## @param pdb.minAvailable Minimum number of pods that must be available (string or int)
+## @param pdb.maxUnavailable Maximum number of pods that can be unavailable (string or int)
+pdb:
+  create: false
+  minAvailable: 1
+  maxUnavailable: ""
+
+## @section Metrics
+## @param metrics.enabled Enable the redis_exporter sidecar
+## @param metrics.image.registry Exporter image registry
+## @param metrics.image.repository Exporter image repository
+## @param metrics.image.tag Exporter image tag
+## @param metrics.image.pullPolicy Exporter image pull policy
+## @param metrics.resources.requests.cpu Exporter CPU request
+## @param metrics.resources.requests.memory Exporter memory request
+## @param metrics.resources.limits.cpu Exporter CPU limit
+## @param metrics.resources.limits.memory Exporter memory limit
+## @param metrics.service.port Port for the metrics Service
+## @param metrics.service.annotations Annotations for the metrics Service
+## @param metrics.serviceMonitor.enabled Create a Prometheus Operator ServiceMonitor
+## @param metrics.serviceMonitor.namespace Namespace to create the ServiceMonitor in (defaults to release namespace)
+## @param metrics.serviceMonitor.interval Scrape interval
+## @param metrics.serviceMonitor.scrapeTimeout Scrape timeout
+## @param metrics.serviceMonitor.labels Additional labels for the ServiceMonitor
+## @param metrics.serviceMonitor.relabelings Relabeling rules for the ServiceMonitor
+## @param metrics.serviceMonitor.metricRelabelings Metric relabeling rules for the ServiceMonitor
+metrics:
+  enabled: false
+  image:
+    registry: docker.io
+    repository: oliver006/redis_exporter
+    tag: "v1.62.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  service:
+    port: 9121
+    annotations: {}
+  serviceMonitor:
+    enabled: false
+    namespace: ""
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+    relabelings: []
+    metricRelabelings: []
