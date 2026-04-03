@@ -17,8 +17,8 @@ keywords:
 sources:
   - https://github.com/docker-library/postgres
 maintainers:
-  - name: Phil
-    email: phil@kagiso.me
+  - name: Kagiso
+    email: admin@kagiso.me
 annotations:
   artifacthub.io/category: database
   artifacthub.io/license: Apache-2.0

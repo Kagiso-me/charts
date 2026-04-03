@@ -27,8 +27,8 @@ annotations:
     - name: Source
       url: https://github.com/Kagiso-me/charts/tree/main/charts/redis
   artifacthub.io/maintainers: |
-    - name: Phil
-      email: phil@kagiso.me
+    - name: Kagiso
+      email: admin@kagiso.me
   artifacthub.io/images: |
     - name: redis
       image: docker.io/redis:7.4.2-alpine
