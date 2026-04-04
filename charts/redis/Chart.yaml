@@ -34,6 +34,9 @@ annotations:
       image: docker.io/redis:7.4.2-alpine
     - name: redis-exporter
       image: docker.io/oliver006/redis_exporter:v1.62.0
+  artifacthub.io/signKey: |
+    fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
+    url: https://github.com/kagiso-me/charts/releases
   artifacthub.io/changes: |
     - kind: added
       description: Initial release with full production-grade feature set

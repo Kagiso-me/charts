@@ -14,6 +14,7 @@ jobs:
     permissions:
       contents: write
       pages: write
+      id-token: write  # required for keyless Cosign signing via GitHub OIDC
 
     steps:
       - name: Checkout
@@ -37,3 +38,50 @@ jobs:
           packages_with_index: true
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign chart packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # chart-releaser uploads .tgz files as assets on GitHub Releases.
+          # We download each one, sign it with keyless Cosign (GitHub OIDC),
+          # then upload the .sig bundle back to the same release.
+          set -euo pipefail
+
+          # Find all releases that were just created (tags pointing to HEAD-ish)
+          # and sign any .tgz assets that don't already have a .sig counterpart.
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 20 --json tagName \
+            --jq '.[].tagName' | while read -r tag; do
+
+            # Download all .tgz assets for this release into a temp dir
+            tmpdir=$(mktemp -d)
+            gh release download "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --pattern "*.tgz" \
+              --dir "$tmpdir" 2>/dev/null || continue
+
+            for tgz in "$tmpdir"/*.tgz; do
+              [ -f "$tgz" ] || continue
+              base=$(basename "$tgz")
+              sig="${tgz}.sig"
+
+              # Skip if signature already uploaded
+              gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets \
+                --jq '.assets[].name' | grep -qF "${base}.sig" && continue
+
+              # Sign (keyless — identity bound to this workflow's OIDC token)
+              cosign sign-blob "$tgz" \
+                --yes \
+                --bundle "${sig}"
+
+              # Upload the bundle back to the release
+              gh release upload "$tag" \
+                --repo "$GITHUB_REPOSITORY" \
+                "${sig}"
+            done
+
+            rm -rf "$tmpdir"
+          done
