@@ -77,7 +77,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Primary-specific selector labels (adds component=primary so you can target just the primary).
 */}}
 {{- define "postgresql.primary.selectorLabels" -}}
-{{ include "postgresql.selectorLabels" . }}
+{{- include "postgresql.selectorLabels" . }}
 app.kubernetes.io/component: primary
 {{- end }}
 

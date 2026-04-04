@@ -5,7 +5,7 @@ description: >
   and data integrity. ACID-compliant, it supports foreign keys, joins, views,
   triggers and stored procedures.
 type: application
-version: 0.3.1
+version: 0.3.2
 appVersion: "17.4.0"
 home: https://www.postgresql.org
 icon: https://wiki.postgresql.org/images/a/a4/PostgreSQL_logo.3colors.svg

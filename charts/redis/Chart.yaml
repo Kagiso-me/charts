@@ -4,7 +4,7 @@ description: >
   Redis is an open source, in-memory data structure store used as a database,
   cache, message broker, and streaming engine.
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: "7.4.2"
 home: https://redis.io
 icon: https://redis.io/images/redis-white.png

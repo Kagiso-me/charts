@@ -76,7 +76,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 Master-specific selector labels.
 */}}
 {{- define "redis.master.selectorLabels" -}}
-{{ include "redis.selectorLabels" . }}
+{{- include "redis.selectorLabels" . }}
 app.kubernetes.io/component: master
 {{- end }}
 
