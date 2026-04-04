@@ -162,6 +162,7 @@
             "successThreshold": { "type": "integer" }
           }
         },
+        "tolerations": { "type": "array" },
         "affinity": { "type": "object" },
         "podAffinityPreset": { "type": "string", "enum": ["", "soft", "hard"] },
         "podAntiAffinityPreset": { "type": "string", "enum": ["", "soft", "hard"] },

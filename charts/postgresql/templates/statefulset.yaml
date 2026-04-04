@@ -93,6 +93,10 @@ spec:
           {{- end }}
         {{- end }}
       {{- end }}
+      {{- with .Values.primary.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- with .Values.primary.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml . | nindent 8 }}

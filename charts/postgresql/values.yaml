@@ -192,6 +192,9 @@ primary:
     failureThreshold: 15
     successThreshold: 1
 
+  ## Tolerations for pod scheduling on tainted nodes.
+  tolerations: []
+
   ## Affinity rules. When `affinity` is set, it takes full precedence over all presets.
   affinity: {}
   ## Pod affinity preset: "" (disabled) | "soft" | "hard"
