@@ -1,0 +1,362 @@
+## @section Global parameters
+## @param global.imageRegistry Global container image registry override
+## @param global.imagePullSecrets Global image pull secrets
+## @param global.env Extra environment variables applied to both server and worker
+## @param global.envFrom Extra envFrom sources applied to both server and worker
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  ## Extra environment variables — applied to both server and worker containers.
+  ## Useful for AUTHENTIK_BOOTSTRAP_* vars sourced from Secrets.
+  ## e.g.:
+  ##   env:
+  ##     - name: AUTHENTIK_BOOTSTRAP_PASSWORD
+  ##       valueFrom:
+  ##         secretKeyRef:
+  ##           name: authentik-secret
+  ##           key: bootstrap-password
+  env: []
+  ## Extra envFrom entries — applied to both server and worker containers.
+  ## e.g.:
+  ##   envFrom:
+  ##     - secretRef:
+  ##         name: my-extra-secret
+  envFrom: []
+
+## @section Image parameters
+## @param image.registry Container image registry
+## @param image.repository Container image repository
+## @param image.tag Container image tag (defaults to .Chart.AppVersion)
+## @param image.pullPolicy Image pull policy
+image:
+  registry: ghcr.io
+  repository: goauthentik/server
+  tag: ""
+  pullPolicy: IfNotPresent
+
+## @section Service account
+## @param serviceAccount.create Create a ServiceAccount
+## @param serviceAccount.name Name override (auto-generated if empty)
+## @param serviceAccount.annotations Annotations to add to the ServiceAccount
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+## @section authentik core configuration
+## These values are converted to AUTHENTIK_SECTION__KEY environment variables
+## and injected into both server and worker via a chart-managed Secret.
+## Secrets (secret_key, postgresql.password, redis.password, email.password)
+## can be supplied here OR via existingSecret — do not set both.
+authentik:
+  ## @param authentik.secret_key Django secret key — must be random, 50+ chars.
+  ## Leave empty and use existingSecret.secretName instead for production.
+  secret_key: ""
+
+  ## @param authentik.log_level Log level: debug, info, warning, error
+  log_level: info
+
+  ## @param authentik.error_reporting.enabled Send anonymous crash reports to Sentry
+  error_reporting:
+    enabled: false
+
+  ## @param authentik.postgresql PostgreSQL connection parameters
+  postgresql:
+    ## @param authentik.postgresql.host PostgreSQL hostname
+    host: ""
+    ## @param authentik.postgresql.port PostgreSQL port
+    port: 5432
+    ## @param authentik.postgresql.name Database name
+    name: authentik
+    ## @param authentik.postgresql.user Database user
+    user: authentik
+    ## @param authentik.postgresql.password Database password — leave empty and use existingSecret
+    password: ""
+
+  ## @param authentik.redis Redis connection parameters
+  redis:
+    ## @param authentik.redis.host Redis hostname
+    host: ""
+    ## @param authentik.redis.port Redis port
+    port: 6379
+    ## @param authentik.redis.password Redis password — leave empty and use existingSecret
+    password: ""
+
+  ## @param authentik.email SMTP email settings
+  email:
+    ## @param authentik.email.host SMTP host
+    host: ""
+    ## @param authentik.email.port SMTP port
+    port: 587
+    ## @param authentik.email.use_tls Use STARTTLS
+    use_tls: true
+    ## @param authentik.email.use_ssl Use SSL/TLS (not STARTTLS)
+    use_ssl: false
+    ## @param authentik.email.username SMTP username
+    username: ""
+    ## @param authentik.email.password SMTP password — leave empty and use existingSecret
+    password: ""
+    ## @param authentik.email.from From address
+    from: ""
+    ## @param authentik.email.timeout SMTP connection timeout (seconds)
+    timeout: 30
+
+## @section Existing Secret
+## @param existingSecret.secretName Name of an existing Secret containing AUTHENTIK_* keys.
+## When set, the chart-managed Secret is not created and this Secret is mounted
+## via envFrom instead. All AUTHENTIK_* keys in the Secret are loaded as env vars.
+existingSecret:
+  secretName: ""
+
+## @section Server Deployment
+server:
+  ## @param server.replicaCount Number of server replicas
+  replicaCount: 1
+
+  ## @param server.revisionHistoryLimit Number of old ReplicaSets to retain
+  revisionHistoryLimit: 10
+
+  ## @param server.minReadySeconds Minimum seconds before a pod is considered ready
+  minReadySeconds: 0
+
+  ## @param server.terminationGracePeriodSeconds Seconds to wait before SIGKILL
+  terminationGracePeriodSeconds: 30
+
+  ## @param server.command Override the container command
+  command: []
+  ## @param server.args Override the container args (default: [server])
+  args: []
+
+  ## @param server.lifecycleHooks Lifecycle hooks for the server container
+  lifecycleHooks: {}
+
+  ## @param server.podAnnotations Extra annotations on server Pods
+  podAnnotations: {}
+
+  ## @param server.podLabels Extra labels on server Pods
+  podLabels: {}
+
+  ## @param server.podSecurityContext Server Pod security context
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+  ## @param server.containerSecurityContext Server container security context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  ## @param server.resources Resource requests and limits
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 100m
+
+  ## @param server.startupProbe Startup probe configuration
+  startupProbe:
+    httpGet:
+      path: /-/health/live/
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 30
+    timeoutSeconds: 5
+
+  ## @param server.livenessProbe Liveness probe configuration
+  livenessProbe:
+    httpGet:
+      path: /-/health/live/
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  ## @param server.readinessProbe Readiness probe configuration
+  readinessProbe:
+    httpGet:
+      path: /-/health/ready/
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 5
+
+  ## @param server.affinity Affinity rules (overrides presets when set)
+  affinity: {}
+  ## @param server.podAffinityPreset Pod affinity preset: "" (none), "soft", "hard"
+  podAffinityPreset: ""
+  ## @param server.podAntiAffinityPreset Pod anti-affinity preset: "" (none), "soft", "hard"
+  podAntiAffinityPreset: soft
+  ## @param server.nodeAffinityPreset.type Node affinity preset type: "" (none), "soft", "hard"
+  ## @param server.nodeAffinityPreset.key Node label key for node affinity
+  ## @param server.nodeAffinityPreset.values Node label values for node affinity
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+
+  ## @param server.tolerations Tolerations for server pods
+  tolerations: []
+  ## @param server.nodeSelector Node selector for server pods
+  nodeSelector: {}
+  ## @param server.topologySpreadConstraints Topology spread constraints
+  topologySpreadConstraints: []
+  ## @param server.priorityClassName Priority class name
+  priorityClassName: ""
+  ## @param server.schedulerName Scheduler name
+  schedulerName: ""
+
+  ## @param server.extraVolumes Extra volumes for server pods
+  extraVolumes: []
+  ## @param server.extraVolumeMounts Extra volume mounts for the server container
+  extraVolumeMounts: []
+
+  ## @param server.ingress.enabled Enable Kubernetes Ingress (use IngressRoute for Traefik)
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts: []
+    tls: []
+
+  ## @param server.service Service configuration for the server
+  service:
+    type: ClusterIP
+    httpPort: 80
+    httpsPort: 443
+    metricsPort: 9300
+    annotations: {}
+
+  ## @param server.metrics Prometheus metrics configuration
+  metrics:
+    ## @param server.metrics.serviceMonitor.enabled Create a Prometheus Operator ServiceMonitor
+    serviceMonitor:
+      enabled: false
+      ## @param server.metrics.serviceMonitor.interval Scrape interval
+      interval: 30s
+      ## @param server.metrics.serviceMonitor.scrapeTimeout Scrape timeout
+      scrapeTimeout: 10s
+      ## @param server.metrics.serviceMonitor.labels Extra labels on the ServiceMonitor
+      labels: {}
+      ## @param server.metrics.serviceMonitor.relabelings Relabeling rules
+      relabelings: []
+      ## @param server.metrics.serviceMonitor.metricRelabelings Metric relabeling rules
+      metricRelabelings: []
+
+  ## @param server.podDisruptionBudget PodDisruptionBudget for the server
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: ""
+    maxUnavailable: ""
+
+## @section Worker Deployment
+worker:
+  ## @param worker.replicaCount Number of worker replicas
+  replicaCount: 1
+
+  ## @param worker.revisionHistoryLimit Number of old ReplicaSets to retain
+  revisionHistoryLimit: 10
+
+  ## @param worker.terminationGracePeriodSeconds Seconds to wait before SIGKILL
+  terminationGracePeriodSeconds: 30
+
+  ## @param worker.command Override the container command
+  command: []
+  ## @param worker.args Override the container args (default: [worker])
+  args: []
+
+  ## @param worker.lifecycleHooks Lifecycle hooks for the worker container
+  lifecycleHooks: {}
+
+  ## @param worker.podAnnotations Extra annotations on worker Pods
+  podAnnotations: {}
+
+  ## @param worker.podLabels Extra labels on worker Pods
+  podLabels: {}
+
+  ## @param worker.podSecurityContext Worker Pod security context
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+  ## @param worker.containerSecurityContext Worker container security context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+
+  ## @param worker.resources Resource requests and limits
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 100m
+
+  ## @param worker.livenessProbe Liveness probe configuration
+  livenessProbe:
+    exec:
+      command:
+        - ak
+        - healthcheck
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    failureThreshold: 3
+    timeoutSeconds: 10
+
+  ## @param worker.readinessProbe Readiness probe configuration (same as liveness for worker)
+  readinessProbe:
+    exec:
+      command:
+        - ak
+        - healthcheck
+    initialDelaySeconds: 15
+    periodSeconds: 30
+    failureThreshold: 3
+    timeoutSeconds: 10
+
+  ## @param worker.affinity Affinity rules (overrides presets when set)
+  affinity: {}
+  ## @param worker.podAffinityPreset Pod affinity preset: "" (none), "soft", "hard"
+  podAffinityPreset: ""
+  ## @param worker.podAntiAffinityPreset Pod anti-affinity preset: "" (none), "soft", "hard"
+  podAntiAffinityPreset: soft
+  ## @param worker.nodeAffinityPreset.type Node affinity preset type
+  nodeAffinityPreset:
+    type: ""
+    key: ""
+    values: []
+
+  ## @param worker.tolerations Tolerations for worker pods
+  tolerations: []
+  ## @param worker.nodeSelector Node selector for worker pods
+  nodeSelector: {}
+  ## @param worker.topologySpreadConstraints Topology spread constraints
+  topologySpreadConstraints: []
+  ## @param worker.priorityClassName Priority class name
+  priorityClassName: ""
+  ## @param worker.schedulerName Scheduler name
+  schedulerName: ""
+
+  ## @param worker.extraVolumes Extra volumes for worker pods
+  extraVolumes: []
+  ## @param worker.extraVolumeMounts Extra volume mounts for the worker container
+  extraVolumeMounts: []
+
+  ## @param worker.podDisruptionBudget PodDisruptionBudget for the worker
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: ""
+    maxUnavailable: ""

@@ -1,0 +1,30 @@
+{{- $svc := .Values.server.service -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ printf "%s-server" (include "authentik.fullname" .) }}
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "authentik.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+  {{- with $svc.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ $svc.type }}
+  ports:
+    - name: http
+      port: {{ $svc.httpPort }}
+      targetPort: http
+      protocol: TCP
+    - name: https
+      port: {{ $svc.httpsPort }}
+      targetPort: https
+      protocol: TCP
+    - name: metrics
+      port: {{ $svc.metricsPort }}
+      targetPort: metrics
+      protocol: TCP
+  selector:
+    {{- include "authentik.server.selectorLabels" . | nindent 4 }}

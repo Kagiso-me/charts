@@ -1,0 +1,34 @@
+authentik {{ .Chart.AppVersion }} has been deployed.
+
+Server:   {{ printf "%s-server" (include "authentik.fullname" .) }}
+Worker:   {{ printf "%s-worker" (include "authentik.fullname" .) }}
+Namespace: {{ .Release.Namespace }}
+
+{{- if not .Values.existingSecret.secretName }}
+  {{- if not .Values.authentik.postgresql.host }}
+
+WARNING: authentik.postgresql.host is not set.
+  authentik will fail to start until a PostgreSQL host is configured.
+  {{- end }}
+  {{- if not .Values.authentik.redis.host }}
+
+WARNING: authentik.redis.host is not set.
+  authentik will fail to start until a Redis host is configured.
+  {{- end }}
+  {{- if not .Values.authentik.secret_key }}
+
+WARNING: authentik.secret_key is not set.
+  Set a secure random key (50+ characters) before production use.
+  Generate one with: openssl rand -hex 32
+  {{- end }}
+{{- end }}
+
+Access authentik:
+{{- $svc := .Values.server.service }}
+  kubectl port-forward svc/{{ printf "%s-server" (include "authentik.fullname" .) }} 9000:{{ $svc.httpPort }} -n {{ .Release.Namespace }}
+  Then open: http://localhost:9000/if/flow/initial-setup/
+
+{{- if .Values.server.metrics.serviceMonitor.enabled }}
+
+Prometheus ServiceMonitor created — scraping metrics from :{{ $svc.metricsPort }}/metrics
+{{- end }}

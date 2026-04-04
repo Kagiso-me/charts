@@ -1,0 +1,55 @@
+apiVersion: v2
+name: authentik
+description: >
+  authentik is an open-source Identity Provider focused on flexibility and
+  versatility. It supports OAuth2, SAML, LDAP, RADIUS, and SCIM, and can act
+  as an SSO provider, a reverse-proxy forward-auth provider, or a full IdP.
+type: application
+version: 0.1.0
+appVersion: "2026.2.1"
+home: https://goauthentik.io
+icon: https://raw.githubusercontent.com/goauthentik/authentik/main/web/icons/icon.png
+keywords:
+  - authentik
+  - identity-provider
+  - sso
+  - oauth2
+  - saml
+  - ldap
+  - oidc
+sources:
+  - https://github.com/goauthentik/authentik
+maintainers:
+  - name: Phil
+    email: phil@kagiso.me
+annotations:
+  artifacthub.io/category: security
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://docs.goauthentik.io
+    - name: Source
+      url: https://github.com/kagiso-me/charts/tree/main/charts/authentik
+  artifacthub.io/maintainers: |
+    - name: Phil
+      email: phil@kagiso.me
+  artifacthub.io/images: |
+    - name: authentik
+      image: ghcr.io/goauthentik/server:2026.2.1
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release
+    - kind: added
+      description: "server + worker Deployments with seccompProfile RuntimeDefault, readOnlyRootFilesystem"
+    - kind: added
+      description: "authentik.* config rendered as AUTHENTIK_SECTION__KEY env vars via chart Secret"
+    - kind: added
+      description: "existingSecret support — skip chart-managed Secret when credentials live externally"
+    - kind: added
+      description: "global.env / global.envFrom passthrough for arbitrary environment injection"
+    - kind: added
+      description: "metrics: ServiceMonitor on server :9300 for Prometheus Operator"
+    - kind: added
+      description: "scheduling: affinity presets, topologySpreadConstraints, priorityClassName, podDisruptionBudget"
+    - kind: added
+      description: "operations: revisionHistoryLimit, terminationGracePeriodSeconds, lifecycleHooks"
