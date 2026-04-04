@@ -34,6 +34,64 @@ entries:
           email: phil@kagiso.me
     apiVersion: v2
     appVersion: 2026.2.1
+    created: "2026-04-04T23:30:45.781827883Z"
+    description: 'authentik is an open-source Identity Provider focused on flexibility
+      and versatility. It supports OAuth2, SAML, LDAP, RADIUS, and SCIM, and can act
+      as an SSO provider, a reverse-proxy forward-auth provider, or a full IdP. '
+    digest: 65a4bb655cddb17d1e8774ecc7760e06c3f86cdc133ca6c5785a65087e6352d5
+    home: https://goauthentik.io
+    icon: https://raw.githubusercontent.com/goauthentik/authentik/main/web/icons/icon.png
+    keywords:
+    - authentik
+    - identity-provider
+    - sso
+    - oauth2
+    - saml
+    - ldap
+    - oidc
+    maintainers:
+    - email: phil@kagiso.me
+      name: Phil
+    name: authentik
+    sources:
+    - https://github.com/goauthentik/authentik
+    type: application
+    urls:
+    - authentik-0.1.1.tgz
+    version: 0.1.1
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release
+        - kind: added
+          description: "server + worker Deployments with seccompProfile RuntimeDefault, readOnlyRootFilesystem"
+        - kind: added
+          description: "authentik.* config rendered as AUTHENTIK_SECTION__KEY env vars via chart Secret"
+        - kind: added
+          description: "existingSecret support — skip chart-managed Secret when credentials live externally"
+        - kind: added
+          description: "global.env / global.envFrom passthrough for arbitrary environment injection"
+        - kind: added
+          description: "metrics: ServiceMonitor on server :9300 for Prometheus Operator"
+        - kind: added
+          description: "scheduling: affinity presets, topologySpreadConstraints, priorityClassName, podDisruptionBudget"
+        - kind: added
+          description: "operations: revisionHistoryLimit, terminationGracePeriodSeconds, lifecycleHooks"
+      artifacthub.io/images: |
+        - name: authentik
+          image: ghcr.io/goauthentik/server:2026.2.1
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://docs.goauthentik.io
+        - name: Source
+          url: https://github.com/kagiso-me/charts/tree/main/charts/authentik
+      artifacthub.io/maintainers: |
+        - name: Phil
+          email: phil@kagiso.me
+    apiVersion: v2
+    appVersion: 2026.2.1
     created: "2026-04-04T19:35:24.541053157Z"
     description: 'authentik is an open-source Identity Provider focused on flexibility
       and versatility. It supports OAuth2, SAML, LDAP, RADIUS, and SCIM, and can act
@@ -435,4 +493,4 @@ entries:
     urls:
     - redis-0.1.0.tgz
     version: 0.1.0
-generated: "2026-04-04T23:20:48.685098865Z"
+generated: "2026-04-04T23:30:45.781847521Z"
