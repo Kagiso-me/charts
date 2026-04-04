@@ -5,7 +5,7 @@ description: >
   versatility. It supports OAuth2, SAML, LDAP, RADIUS, and SCIM, and can act
   as an SSO provider, a reverse-proxy forward-auth provider, or a full IdP.
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "2026.2.1"
 home: https://goauthentik.io
 icon: https://raw.githubusercontent.com/goauthentik/authentik/main/web/icons/icon.png
