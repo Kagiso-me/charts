@@ -430,6 +430,63 @@ entries:
         url: https://github.com/kagiso-me/charts/releases
     apiVersion: v2
     appVersion: 7.4.2
+    created: "2026-04-05T10:44:28.217971723Z"
+    description: 'Redis is an open source, in-memory data structure store used as
+      a database, cache, message broker, and streaming engine. '
+    digest: d72264ba35be7737a2663227f065c43f5229d2ebcb5ee8931384171672899b80
+    home: https://redis.io
+    icon: https://redis.io/images/redis-white.png
+    keywords:
+    - redis
+    - cache
+    - keyvalue
+    - database
+    maintainers:
+    - email: phil@kagiso.me
+      name: Phil
+    name: redis
+    sources:
+    - https://github.com/docker-library/redis
+    type: application
+    urls:
+    - redis-0.1.5.tgz
+    version: 0.1.5
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: fixed
+          description: "probes: replace $(REDIS_PASSWORD) with $REDIS_PASSWORD in liveness/readiness/startup probe commands — shell interprets $() as command substitution, not env var, causing auth to fail and liveness probe to kill the pod"
+        - kind: added
+          description: Initial release with full production-grade feature set
+        - kind: added
+          description: "security: seccompProfile RuntimeDefault, readOnlyRootFilesystem, auth.usePasswordFiles, disableCommands"
+        - kind: added
+          description: "operations: terminationGracePeriodSeconds, lifecycleHooks, persistentVolumeClaimRetentionPolicy, revisionHistoryLimit, minReadySeconds"
+        - kind: added
+          description: "scheduling: affinity presets (soft/hard), topologySpreadConstraints, priorityClassName, schedulerName"
+        - kind: added
+          description: "init: volumePermissions init container, sysctl init container for kernel tuning"
+        - kind: added
+          description: "override: master.command and master.args for full container command control"
+      artifacthub.io/images: |
+        - name: redis
+          image: docker.io/redis:7.4.2-alpine
+        - name: redis-exporter
+          image: docker.io/oliver006/redis_exporter:v1.62.0
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://redis.io/docs/
+        - name: Source
+          url: https://github.com/Kagiso-me/charts/tree/main/charts/redis
+      artifacthub.io/maintainers: |
+        - name: Kagiso
+          email: admin@kagiso.me
+      artifacthub.io/signKey: |
+        fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
+        url: https://github.com/kagiso-me/charts/releases
+    apiVersion: v2
+    appVersion: 7.4.2
     created: "2026-04-05T10:10:55.362945121Z"
     description: 'Redis is an open source, in-memory data structure store used as
       a database, cache, message broker, and streaming engine. '
@@ -665,4 +722,4 @@ entries:
     urls:
     - redis-0.1.0.tgz
     version: 0.1.0
-generated: "2026-04-05T10:10:55.362983172Z"
+generated: "2026-04-05T10:44:28.218197504Z"
