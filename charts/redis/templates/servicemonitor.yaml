@@ -32,6 +32,6 @@ spec:
       - {{ include "redis.namespace" . }}
   selector:
     matchLabels:
-      {{- include "redis.master.selectorLabels" . | nindent 6 }}
+      {{- include "redis.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: metrics
 {{- end }}

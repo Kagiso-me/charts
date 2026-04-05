@@ -32,6 +32,6 @@ spec:
       - {{ include "postgresql.namespace" . }}
   selector:
     matchLabels:
-      {{- include "postgresql.primary.selectorLabels" . | nindent 6 }}
+      {{- include "postgresql.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: metrics
 {{- end }}
