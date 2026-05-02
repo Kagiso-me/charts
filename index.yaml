@@ -117,6 +117,37 @@ entries:
     urls:
     - authentik-0.1.0.tgz
     version: 0.1.0
+  payload-cms:
+  - annotations:
+      artifacthub.io/category: content-management
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release — Deployment, Service, IngressRoute, PVC for media uploads
+      artifacthub.io/license: MIT
+    apiVersion: v2
+    appVersion: 3.33.0
+    created: "2026-05-02T16:37:33.472291175Z"
+    description: 'Payload CMS is a self-hosted, code-first headless CMS built on Node.js
+      and MongoDB/PostgreSQL. Used here as a content backend for kagiso.me photos,
+      series, and video projects. '
+    digest: d8bd9a78455ee17b9dff698285d138ce89cc123a4db613f74f7f24ddaf0730de
+    home: https://payloadcms.com
+    icon: https://payloadcms.com/images/og-image.jpg
+    keywords:
+    - payload
+    - cms
+    - headless
+    - content-management
+    maintainers:
+    - email: admin@kagiso.me
+      name: Kagiso
+    name: payload-cms
+    sources:
+    - https://github.com/payloadcms/payload
+    type: application
+    urls:
+    - payload-cms-0.1.0.tgz
+    version: 0.1.0
   postgresql:
   - annotations:
       artifacthub.io/category: database
@@ -722,4 +753,4 @@ entries:
     urls:
     - redis-0.1.0.tgz
     version: 0.1.0
-generated: "2026-04-05T10:44:28.218197504Z"
+generated: "2026-05-02T16:37:33.472316993Z"
