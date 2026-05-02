@@ -1,0 +1,27 @@
+apiVersion: v2
+name: payload-cms
+description: >
+  Payload CMS is a self-hosted, code-first headless CMS built on Node.js and
+  MongoDB/PostgreSQL. Used here as a content backend for kagiso.me photos,
+  series, and video projects.
+type: application
+version: 0.1.0
+appVersion: "3.33.0"
+home: https://payloadcms.com
+icon: https://payloadcms.com/images/og-image.jpg
+keywords:
+  - payload
+  - cms
+  - headless
+  - content-management
+sources:
+  - https://github.com/payloadcms/payload
+maintainers:
+  - name: Kagiso
+    email: admin@kagiso.me
+annotations:
+  artifacthub.io/category: content-management
+  artifacthub.io/license: MIT
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release — Deployment, Service, IngressRoute, PVC for media uploads

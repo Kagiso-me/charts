@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "payload-cms.fullname" . }}
+  namespace: {{ include "payload-cms.namespace" . }}
+  labels:
+    {{- include "payload-cms.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "payload-cms.selectorLabels" . | nindent 4 }}

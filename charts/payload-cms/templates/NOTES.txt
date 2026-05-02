@@ -1,0 +1,19 @@
+Payload CMS has been deployed.
+
+Admin UI (internal only):
+  https://cms.local.kagiso.me
+
+Public API (for Astro site):
+  https://cms.kagiso.me/api
+
+First login:
+  Visit the admin URL and create your first admin user.
+  The first user registered becomes the super-admin.
+
+To add content:
+  1. Log into the admin UI
+  2. Create collections (Photos, Series, Videos)
+  3. Upload media — stored in the /media PVC on nfs-truenas
+
+After uploading content, trigger a site rebuild:
+  The GitHub Action webhook is called automatically via Payload hooks.

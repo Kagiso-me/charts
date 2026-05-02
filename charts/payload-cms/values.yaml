@@ -1,0 +1,54 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/kagiso-me/payload-cms
+  pullPolicy: IfNotPresent
+  tag: ""
+
+nameOverride: ""
+fullnameOverride: ""
+namespaceOverride: ""
+commonAnnotations: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Public URL Payload uses to generate API links and media URLs
+serverUrl: "https://cms.kagiso.me"
+
+service:
+  type: ClusterIP
+  port: 3000
+
+# Auth — use existingSecret in production (SOPS-encrypted)
+auth:
+  createSecret: false
+  existingSecret: "payload-cms-secret"
+  # Only used if createSecret: true (dev/test only)
+  payloadSecret: ""
+
+database:
+  postgresHost: postgresql-primary.databases.svc.cluster.local
+  postgresPort: 5432
+  # DATABASE_URI injected via secret
+  uri: ""
+
+media:
+  mountPath: /app/media
+  persistence:
+    enabled: true
+    storageClass: nfs-truenas
+    accessMode: ReadWriteMany
+    size: 20Gi
+
+extraEnv: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

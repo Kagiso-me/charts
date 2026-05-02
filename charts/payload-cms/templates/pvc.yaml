@@ -1,0 +1,16 @@
+{{- if .Values.media.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "payload-cms.fullname" . }}-media
+  namespace: {{ include "payload-cms.namespace" . }}
+  labels:
+    {{- include "payload-cms.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.media.persistence.accessMode }}
+  storageClassName: {{ .Values.media.persistence.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.media.persistence.size }}
+{{- end }}
