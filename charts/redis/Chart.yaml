@@ -4,7 +4,7 @@ description: >
   Redis is an open source, in-memory data structure store used as a database,
   cache, message broker, and streaming engine.
 type: application
-version: 0.1.5
+version: 0.1.6
 appVersion: "7.4.2"
 home: https://redis.io
 icon: https://redis.io/images/redis-white.png
@@ -39,7 +39,7 @@ annotations:
     url: https://github.com/kagiso-me/charts/releases
   artifacthub.io/changes: |
     - kind: fixed
-      description: "probes: replace $(REDIS_PASSWORD) with $REDIS_PASSWORD in liveness/readiness/startup probe commands — shell interprets $() as command substitution, not env var, causing auth to fail and liveness probe to kill the pod"
+      description: "metrics: increase readiness probe timeoutSeconds from 1s to 5s — exporter startup under auth causes consistent timeout with 1s limit"
     - kind: added
       description: Initial release with full production-grade feature set
     - kind: added

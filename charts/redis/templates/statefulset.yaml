@@ -329,7 +329,7 @@ spec:
               port: metrics
             initialDelaySeconds: 5
             periodSeconds: 10
-            timeoutSeconds: 1
+            timeoutSeconds: 5
             failureThreshold: 6
           resources:
             {{- toYaml .Values.metrics.resources | nindent 12 }}
