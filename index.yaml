@@ -814,6 +814,51 @@ entries:
   - annotations:
       artifacthub.io/category: security
       artifacthub.io/changes: |
+        - kind: fixed
+          description: "selector: add app.kubernetes.io/component label so the Deployment selector matches a guerzon-chart deployment exactly, enabling a true in-place upgrade (Deployment.spec.selector is immutable — a mismatch makes Helm upgrade fail)"
+        - kind: added
+          description: Initial release — Deployment on the official upstream image, PostgreSQL-backed, env-driven config, existingSecret for all credentials, full security context, NetworkPolicy and PDB opt-in, adopts an existing data PVC for in-place migration
+      artifacthub.io/images: |
+        - name: vaultwarden
+          image: docker.io/vaultwarden/server:1.36.0-alpine
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://github.com/dani-garcia/vaultwarden/wiki
+        - name: Source
+          url: https://github.com/Kagiso-me/charts/tree/main/charts/vaultwarden
+      artifacthub.io/maintainers: |
+        - name: Kagiso
+          email: admin@kagiso.me
+      artifacthub.io/signKey: |
+        fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
+        url: https://github.com/kagiso-me/charts/releases
+    apiVersion: v2
+    appVersion: 1.36.0
+    created: "2026-06-28T10:18:26.776069488Z"
+    description: 'Vaultwarden is an unofficial, lightweight Bitwarden-compatible server
+      written in Rust — a self-hosted password manager with a small footprint. '
+    digest: 1d4e8424a644a442f57749ffab257312b3ac1a993d8dc0b87aa263ba5de6e641
+    home: https://github.com/dani-garcia/vaultwarden
+    icon: https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon-white.png
+    keywords:
+    - vaultwarden
+    - bitwarden
+    - password-manager
+    - secrets
+    maintainers:
+    - email: phil@kagiso.me
+      name: Phil
+    name: vaultwarden
+    sources:
+    - https://github.com/dani-garcia/vaultwarden
+    type: application
+    urls:
+    - vaultwarden-0.1.1.tgz
+    version: 0.1.1
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/changes: |
         - kind: added
           description: Initial release — Deployment on the official upstream image, PostgreSQL-backed, env-driven config, existingSecret for all credentials, full security context, NetworkPolicy and PDB opt-in, adopts an existing data PVC for in-place migration
       artifacthub.io/images: |
@@ -854,4 +899,4 @@ entries:
     urls:
     - vaultwarden-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-28T09:14:46.106928047Z"
+generated: "2026-06-28T10:18:26.77610803Z"
