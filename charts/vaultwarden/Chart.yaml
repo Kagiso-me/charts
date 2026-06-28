@@ -4,7 +4,7 @@ description: >
   Vaultwarden is an unofficial, lightweight Bitwarden-compatible server written
   in Rust — a self-hosted password manager with a small footprint.
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "1.36.0"
 home: https://github.com/dani-garcia/vaultwarden
 icon: https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon-white.png
@@ -36,5 +36,7 @@ annotations:
     fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
     url: https://github.com/kagiso-me/charts/releases
   artifacthub.io/changes: |
+    - kind: fixed
+      description: "selector: add app.kubernetes.io/component label so the Deployment selector matches a guerzon-chart deployment exactly, enabling a true in-place upgrade (Deployment.spec.selector is immutable — a mismatch makes Helm upgrade fail)"
     - kind: added
       description: Initial release — Deployment on the official upstream image, PostgreSQL-backed, env-driven config, existingSecret for all credentials, full security context, NetworkPolicy and PDB opt-in, adopts an existing data PVC for in-place migration
