@@ -1,0 +1,30 @@
+{{ template "chart.header" . }}
+{{ template "chart.deprecationWarning" . }}
+
+{{ template "chart.badgesSection" . }}
+
+{{ template "chart.description" . }}
+
+Built on the official `vaultwarden/server` image. PostgreSQL-backed, env-driven,
+read-only root filesystem, all credentials via `existingSecret`. Ingress is left
+to the platform (no chart-managed Ingress by default).
+
+## Migrating an existing deployment in place
+
+Set `persistence.existingClaim` to your current data PVC and `fullnameOverride`
+to the running resource name so the new Deployment adopts the same volume and
+Service with zero data movement:
+
+```yaml
+fullnameOverride: vaultwarden
+persistence:
+  existingClaim: vaultwarden-data-vaultwarden-0
+existingSecret: vaultwarden-secret
+```
+
+{{ template "chart.valuesHeader" . }}
+{{ template "chart.valuesTable" . }}
+
+{{ template "chart.maintainersSection" . }}
+{{ template "chart.sourcesSection" . }}
+{{ template "helm-docs.versionFooter" . }}

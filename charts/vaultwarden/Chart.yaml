@@ -1,0 +1,40 @@
+apiVersion: v2
+name: vaultwarden
+description: >
+  Vaultwarden is an unofficial, lightweight Bitwarden-compatible server written
+  in Rust — a self-hosted password manager with a small footprint.
+type: application
+version: 0.1.0
+appVersion: "1.36.0"
+home: https://github.com/dani-garcia/vaultwarden
+icon: https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon-white.png
+keywords:
+  - vaultwarden
+  - bitwarden
+  - password-manager
+  - secrets
+sources:
+  - https://github.com/dani-garcia/vaultwarden
+maintainers:
+  - name: Phil
+    email: phil@kagiso.me
+annotations:
+  artifacthub.io/category: security
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Documentation
+      url: https://github.com/dani-garcia/vaultwarden/wiki
+    - name: Source
+      url: https://github.com/Kagiso-me/charts/tree/main/charts/vaultwarden
+  artifacthub.io/maintainers: |
+    - name: Kagiso
+      email: admin@kagiso.me
+  artifacthub.io/images: |
+    - name: vaultwarden
+      image: docker.io/vaultwarden/server:1.36.0-alpine
+  artifacthub.io/signKey: |
+    fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
+    url: https://github.com/kagiso-me/charts/releases
+  artifacthub.io/changes: |
+    - kind: added
+      description: Initial release — Deployment on the official upstream image, PostgreSQL-backed, env-driven config, existingSecret for all credentials, full security context, NetworkPolicy and PDB opt-in, adopts an existing data PVC for in-place migration

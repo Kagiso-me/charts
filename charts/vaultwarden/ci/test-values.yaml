@@ -1,0 +1,14 @@
+# CI install test (kind). No external Postgres in CI — disable persistence and
+# use the chart-managed Secret with a throwaway DATABASE_URL so the pod can boot
+# far enough to pass the install. ct does not run probes to readiness here.
+domain: "https://vault.example.test"
+persistence:
+  enabled: false
+database:
+  url: "postgresql://vaultwarden:test@localhost:5432/vaultwarden"
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    memory: 128Mi

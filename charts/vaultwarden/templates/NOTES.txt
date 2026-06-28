@@ -1,0 +1,21 @@
+Vaultwarden {{ .Chart.AppVersion }} deployed as {{ include "vaultwarden.fullname" . }}.
+
+{{- if .Values.domain }}
+URL: {{ .Values.domain }}
+{{- else }}
+WARNING: .Values.domain is unset — WebAuthn, email links and attachments need it.
+{{- end }}
+
+{{- if not .Values.existingSecret }}
+
+WARNING: using the chart-managed Secret. For production set `existingSecret`
+and manage DATABASE_URL / ADMIN_TOKEN / SMTP_PASSWORD out-of-band.
+{{- end }}
+
+{{- if .Values.persistence.existingClaim }}
+
+Data: adopting existing PVC "{{ .Values.persistence.existingClaim }}" — no data was moved.
+{{- end }}
+
+Admin panel: {{ if .Values.domain }}{{ .Values.domain }}/admin{{ else }}<domain>/admin{{ end }}
+(requires ADMIN_TOKEN; the /admin route is typically blocked at the ingress).
