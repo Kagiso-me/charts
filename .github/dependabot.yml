@@ -1,0 +1,15 @@
+version: 2
+updates:
+  # Keep the GitHub Actions in our release/lint/docs workflows patched —
+  # these run with repo write + id-token (cosign signing), so a compromised
+  # action is high-impact. Dependabot opens PRs; CI must pass to merge.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: saturday
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: chore(deps)

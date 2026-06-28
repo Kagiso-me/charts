@@ -51,8 +51,10 @@ helm search repo kagiso-me
 |-------|-------------|-------------|
 | [postgresql](charts/postgresql) | 17.4.0 | Open source relational database. ACID-compliant, battle-tested, boring in the best possible way. |
 | [redis](charts/redis) | 7.4.2 | In-memory data structure store. Cache, message broker, and streaming engine in one. |
+| [authentik](charts/authentik) | — | Self-hosted identity provider / SSO. |
+| [payload-cms](charts/payload-cms) | — | Headless CMS (Payload). |
 
-More charts are being added. Next up: `nextcloud`, `authentik`, `immich`, `vaultwarden`, `n8n`, `wordpress`.
+More charts are being added. Next up: `vaultwarden`, `crowdsec`, `nextcloud`, `immich`.
 
 ---
 
@@ -70,6 +72,37 @@ Before a chart is published it meets every item on this list:
 - [ ] `nameOverride`, `fullnameOverride`, `commonLabels`, `commonAnnotations` work
 - [ ] Global image registry and pull secret overrides work
 - [ ] Persistence can be disabled for test environments
+
+---
+
+## Security & provenance
+
+Every published chart package is **signed with keyless Cosign** (Sigstore) using
+the release workflow's GitHub OIDC identity — there is no long-lived signing key
+to leak. Each release carries a `.sig` bundle alongside its `.tgz`.
+
+Verify a package before installing:
+
+```bash
+# Download the chart and its signature bundle from the GitHub Release
+gh release download postgresql-0.3.3 --repo Kagiso-me/charts \
+  --pattern 'postgresql-0.3.3.tgz*'
+
+cosign verify-blob postgresql-0.3.3.tgz \
+  --bundle postgresql-0.3.3.tgz.sig \
+  --certificate-identity-regexp 'https://github.com/Kagiso-me/charts/.github/workflows/release.yaml@.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+A successful verification proves the package was built and signed by *this repo's*
+release workflow, not tampered with in transit or substituted on the index.
+
+Supply-chain hardening on this repo:
+
+- **Keyless Cosign signing** on every release (above)
+- **Dependabot** keeps the workflow Actions patched (`.github/dependabot.yml`)
+- **Secret scanning + push protection** enabled (GitHub-native)
+- **OpenSSF Scorecard** tracked (badge above)
 
 ---
 
