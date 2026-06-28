@@ -810,4 +810,48 @@ entries:
     urls:
     - redis-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-20T16:07:31.58184769Z"
+  vaultwarden:
+  - annotations:
+      artifacthub.io/category: security
+      artifacthub.io/changes: |
+        - kind: added
+          description: Initial release — Deployment on the official upstream image, PostgreSQL-backed, env-driven config, existingSecret for all credentials, full security context, NetworkPolicy and PDB opt-in, adopts an existing data PVC for in-place migration
+      artifacthub.io/images: |
+        - name: vaultwarden
+          image: docker.io/vaultwarden/server:1.36.0-alpine
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://github.com/dani-garcia/vaultwarden/wiki
+        - name: Source
+          url: https://github.com/Kagiso-me/charts/tree/main/charts/vaultwarden
+      artifacthub.io/maintainers: |
+        - name: Kagiso
+          email: admin@kagiso.me
+      artifacthub.io/signKey: |
+        fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
+        url: https://github.com/kagiso-me/charts/releases
+    apiVersion: v2
+    appVersion: 1.36.0
+    created: "2026-06-28T09:14:46.106900967Z"
+    description: 'Vaultwarden is an unofficial, lightweight Bitwarden-compatible server
+      written in Rust — a self-hosted password manager with a small footprint. '
+    digest: 892ed0309873cc2f4e27a45409caeb45f890582adf1bc616adfcc260767e7b91
+    home: https://github.com/dani-garcia/vaultwarden
+    icon: https://raw.githubusercontent.com/dani-garcia/vaultwarden/main/resources/vaultwarden-icon-white.png
+    keywords:
+    - vaultwarden
+    - bitwarden
+    - password-manager
+    - secrets
+    maintainers:
+    - email: phil@kagiso.me
+      name: Phil
+    name: vaultwarden
+    sources:
+    - https://github.com/dani-garcia/vaultwarden
+    type: application
+    urls:
+    - vaultwarden-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-06-28T09:14:46.106928047Z"
