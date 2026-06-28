@@ -1,0 +1,171 @@
+# -- Global values shared across the chart.
+global:
+  # -- Global image registry override; takes precedence over image.registry.
+  imageRegistry: ""
+  # -- Global image pull secrets (list of {name}).
+  imagePullSecrets: []
+
+# -- Override the chart name portion of resource names.
+nameOverride: ""
+# -- Fully override the generated resource name. Set this to adopt resources
+# created by another chart (e.g. "vaultwarden") during an in-place migration.
+fullnameOverride: ""
+
+image:
+  registry: docker.io
+  repository: vaultwarden/server
+  # -- Image tag. Defaults to the chart appVersion when empty.
+  tag: "1.36.0-alpine"
+  pullPolicy: IfNotPresent
+
+# -- Number of replicas. Vaultwarden is not horizontally scalable (single SQLite
+# is replaced by Postgres here, but the app still assumes one writer) — keep at 1.
+replicaCount: 1
+
+# -- Public URL Vaultwarden is served at (DOMAIN env). Required for WebAuthn,
+# email links, and attachments.
+domain: ""
+
+# -- Allow open user registration (SIGNUPS_ALLOWED). Default off — admin invites.
+signupsAllowed: false
+
+# -- Name of an existing Secret holding credentials. When set, the chart does
+# not create its own Secret. Expected keys: see existingSecretKeys below.
+existingSecret: ""
+existingSecretKeys:
+  # -- Key holding the admin token (ADMIN_TOKEN). Empty disables /admin.
+  adminToken: admin-token
+  # -- Key holding the full database connection string (DATABASE_URL).
+  databaseUrl: database-url
+  # -- Key holding the SMTP password (SMTP_PASSWORD).
+  smtpPassword: smtp-password
+
+database:
+  # -- Connection string. Injected via existingSecret in production; only set
+  # here for test installs. Format: postgresql://user:pass@host:port/dbname
+  url: ""
+
+smtp:
+  # -- Enable outbound email (password reset, invites).
+  enabled: false
+  host: ""
+  port: 587
+  security: starttls # starttls | force_tls | off
+  from: ""
+  fromName: "Vaultwarden"
+  username: ""
+  # password: injected via existingSecret
+
+# -- Extra environment variables (list of {name, value} or {name, valueFrom}).
+extraEnv: []
+
+persistence:
+  # -- Mount a PVC at /data for attachments, icons, and the RSA keys.
+  enabled: true
+  # -- Adopt an existing PVC instead of creating one. Set to the running claim
+  # name to migrate in place with zero data movement.
+  existingClaim: ""
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 5Gi
+  annotations: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  # -- Chart-managed Ingress. Disabled here — ingress is handled externally
+  # (Traefik IngressRoute lives in the consuming GitOps repo).
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  # -- Vaultwarden needs no API access; do not mount the token.
+  automountServiceAccountToken: false
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+# -- Pod-level security context. UID/GID 1000/3000 match the on-disk ownership
+# of the existing /data volume (rsa_key.pem, config.json) so an adopted PVC is
+# readable. fsGroup 3000 fixes group ownership of any new files. Change these
+# only if migrating fresh data with different ownership.
+podSecurityContext:
+  fsGroup: 3000
+  fsGroupChangePolicy: OnRootMismatch
+  runAsUser: 1000
+  runAsGroup: 3000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container-level security context. Vaultwarden writes only to /data (a
+# mounted volume) and /tmp, so the root filesystem can be read-only.
+containerSecurityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
+
+livenessProbe:
+  enabled: true
+  initialDelaySeconds: 20
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+startupProbe:
+  enabled: true
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+# -- Pod annotations / labels.
+podAnnotations: {}
+podLabels: {}
+commonLabels: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+priorityClassName: ""
+terminationGracePeriodSeconds: 30
+revisionHistoryLimit: 3
+
+networkPolicy:
+  # -- Opt-in NetworkPolicy. Off by default; the consuming cluster manages
+  # network policy centrally.
+  enabled: false
+  ingress: []
+  egress: []
+
+podDisruptionBudget:
+  enabled: false
+  minAvailable: ""
+  maxUnavailable: ""
