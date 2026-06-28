@@ -49,6 +49,7 @@ Selector labels.
 {{- define "vaultwarden.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "vaultwarden.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: vaultwarden
 {{- end }}
 
 {{/*
