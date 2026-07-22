@@ -153,6 +153,68 @@ entries:
       artifacthub.io/category: database
       artifacthub.io/changes: |
         - kind: added
+          description: "metrics: datasourceUser/datasourceSecretKey/autoDiscoverDatabases to run the exporter as a dedicated non-superuser pg_monitor role"
+        - kind: added
+          description: Initial release
+        - kind: added
+          description: "metrics: postgres_exporter sidecar, metrics Service, and Prometheus Operator ServiceMonitor"
+        - kind: added
+          description: "security: seccompProfile RuntimeDefault, readOnlyRootFilesystem enforced, auth.usePasswordFiles"
+        - kind: added
+          description: "operations: terminationGracePeriodSeconds, lifecycleHooks, persistentVolumeClaimRetentionPolicy, revisionHistoryLimit, minReadySeconds"
+        - kind: added
+          description: "scheduling: affinity presets (soft/hard), topologySpreadConstraints, priorityClassName, schedulerName"
+        - kind: added
+          description: "init: volumePermissions init container, initdb scripts support"
+        - kind: added
+          description: "override: primary.command and primary.args for full container command control"
+        - kind: changed
+          description: "BREAKING: readOnlyRootFilesystem now defaults to true; /var/run/postgresql emptyDir added for socket"
+      artifacthub.io/images: |
+        - name: postgresql
+          image: docker.io/postgres:17.4-alpine
+        - name: postgres-exporter
+          image: docker.io/prometheuscommunity/postgres-exporter:v0.15.0
+      artifacthub.io/license: Apache-2.0
+      artifacthub.io/links: |
+        - name: Documentation
+          url: https://www.postgresql.org/docs/
+        - name: Source
+          url: https://github.com/phil-mcgee/charts/tree/main/charts/postgresql
+      artifacthub.io/maintainers: |
+        - name: Phil
+          email: phil@kagiso.me
+      artifacthub.io/signKey: |
+        fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
+        url: https://github.com/kagiso-me/charts/releases
+    apiVersion: v2
+    appVersion: 17.4.0
+    created: "2026-07-22T15:44:16.018277194Z"
+    description: 'PostgreSQL is an open source object-relational database known for
+      reliability and data integrity. ACID-compliant, it supports foreign keys, joins,
+      views, triggers and stored procedures. '
+    digest: 55579e05c2557cb0f1058fa17edfc0c367924da117e68a5f632a0ff4ffbfc060
+    home: https://www.postgresql.org
+    icon: https://wiki.postgresql.org/images/a/a4/PostgreSQL_logo.3colors.svg
+    keywords:
+    - postgresql
+    - postgres
+    - database
+    - sql
+    maintainers:
+    - email: admin@kagiso.me
+      name: Kagiso
+    name: postgresql
+    sources:
+    - https://github.com/docker-library/postgres
+    type: application
+    urls:
+    - postgresql-0.4.0.tgz
+    version: 0.4.0
+  - annotations:
+      artifacthub.io/category: database
+      artifacthub.io/changes: |
+        - kind: added
           description: Initial release
         - kind: added
           description: "metrics: postgres_exporter sidecar, metrics Service, and Prometheus Operator ServiceMonitor"
@@ -899,4 +961,4 @@ entries:
     urls:
     - vaultwarden-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-28T10:18:26.77610803Z"
+generated: "2026-07-22T15:44:16.01831323Z"
