@@ -278,6 +278,9 @@
       "additionalProperties": false,
       "properties": {
         "enabled": { "type": "boolean" },
+        "datasourceUser": { "type": "string" },
+        "datasourceSecretKey": { "type": "string" },
+        "autoDiscoverDatabases": { "type": "boolean" },
         "image": {
           "type": "object",
           "additionalProperties": false,
