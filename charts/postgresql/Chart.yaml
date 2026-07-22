@@ -5,7 +5,7 @@ description: >
   and data integrity. ACID-compliant, it supports foreign keys, joins, views,
   triggers and stored procedures.
 type: application
-version: 0.3.3
+version: 0.4.0
 appVersion: "17.4.0"
 home: https://www.postgresql.org
 icon: https://wiki.postgresql.org/images/a/a4/PostgreSQL_logo.3colors.svg
@@ -39,6 +39,8 @@ annotations:
     fingerprint: https://github.com/kagiso-me/charts/.github/workflows/release.yaml@refs/heads/main
     url: https://github.com/kagiso-me/charts/releases
   artifacthub.io/changes: |
+    - kind: added
+      description: "metrics: datasourceUser/datasourceSecretKey/autoDiscoverDatabases to run the exporter as a dedicated non-superuser pg_monitor role"
     - kind: added
       description: Initial release
     - kind: added

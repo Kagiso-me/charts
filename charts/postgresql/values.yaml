@@ -326,6 +326,16 @@ pdb:
 ## @param metrics.serviceMonitor.metricRelabelings Metric relabeling rules for the ServiceMonitor
 metrics:
   enabled: false
+  # Exporter datasource. By default the exporter authenticates as the admin/auth
+  # user, which is a superuser. That both over-privileges the exporter and lets a
+  # leaked exporter connection consume superuser_reserved_connections. Point
+  # datasourceUser at a dedicated pg_monitor role (created via primary.initdb.scripts)
+  # and its password lives under datasourceSecretKey in auth.existingSecret.
+  datasourceUser: ""
+  datasourceSecretKey: "exporter-password"
+  # Auto-discover opens one connection per database. With a superuser that is how
+  # the reserved slots get exhausted. Set false to hold a single connection.
+  autoDiscoverDatabases: true
   image:
     registry: docker.io
     repository: prometheuscommunity/postgres-exporter
